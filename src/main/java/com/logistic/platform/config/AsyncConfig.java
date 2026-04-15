@@ -1,0 +1,35 @@
+package com.logistic.platform.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.util.concurrent.Executor;
+
+@Configuration
+@EnableAsync
+public class AsyncConfig {
+
+	@Value("${asyncConfig.corePoolSize}")
+	private String corePoolSize;
+
+	@Value("${asyncConfig.maxPoolSize}")
+	private String maxPoolSize;
+
+	@Value("${asyncConfig.queueCapacity}")
+	private String queueSize;
+
+	@Bean(name = "asyncExecutor")
+	public Executor asyncExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(Integer.valueOf(corePoolSize));
+		executor.setMaxPoolSize(Integer.valueOf(maxPoolSize));
+		executor.setQueueCapacity(Integer.valueOf(queueSize));
+		executor.setThreadNamePrefix("threadExecution-");
+		executor.initialize();
+
+		return executor;
+	}
+}
