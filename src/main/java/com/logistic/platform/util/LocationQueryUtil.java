@@ -1,0 +1,45 @@
+package com.logistic.platform.util;
+
+public class LocationQueryUtil {
+
+    private LocationQueryUtil() {
+        throw new IllegalStateException("LocationQueryUtil class");
+    }
+
+
+    public static String insertQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append("INSERT INTO \"Locations\"");
+        query.append("(");
+        query.append("location_code, ");
+        query.append("name, ");
+        query.append("type, ");
+        query.append("city, ");
+        query.append("country, ");
+        query.append("latitude, ");
+        query.append("longitude, ");
+        query.append("created_date, ");
+        query.append("created_by, ");
+        query.append("updated_date, ");
+        query.append("updated_by ");
+        query.append(") ");
+        query.append("VALUES (");
+        query.append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?");
+        query.append(") ");
+
+        return query.toString();
+    }
+
+    public static String findLastLocationCodeQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append("SELECT ");
+        query.append(" location_code ");
+        query.append("FROM ");
+        query.append(" \"Locations\" l ");
+        query.append("ORDER BY id DESC ");
+        query.append("LIMIT 1 ");
+
+        return query.toString();
+    }
+
+}
