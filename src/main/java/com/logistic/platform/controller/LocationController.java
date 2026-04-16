@@ -42,28 +42,37 @@ public class LocationController {
 
         LocationResponseDto responseDto = null;
 
-        Location location = locationRequestDto.toLocation();
+        try {
+            Location location = locationRequestDto.toLocation();
 
-        String newLocationCode = service.generateLocationCode(requestId);
-        location.setLocationCode(newLocationCode);
+            String newLocationCode = service.generateLocationCode(requestId);
+            location.setLocationCode(newLocationCode);
 
-        Boolean isCreated = service.create(location, requestId);
+            Boolean isCreated = service.create(location, requestId);
 
-        if (Boolean.TRUE.equals(isCreated)) {
-            responseDto = new LocationResponseDto(location.getName(), newLocationCode);
+            if (Boolean.TRUE.equals(isCreated)) {
+                responseDto = new LocationResponseDto(location.getName(), newLocationCode);
 
-            response.setResponseCode(HttpStatus.OK.value());
-            response.setResponseMessage("Location created successfully.");
-            response.setData(responseDto);
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Location created successfully.");
+                response.setData(responseDto);
 
-        } else {
-            response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+            } else {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Failed to create location.");
+            }
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
             response.setResponseMessage("Failed to create location.");
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] createLocation: Ex={}|Trace={}", requestId,
+                    e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] createLocation: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
         }
-
-        response.setTimestamp(LocalDateTime.now());
-
-        LOGGER.info("END [REST-LAYER] [RequestId={}] createLocation: response={}|timeTaken={}", requestId, response, CommonUtils.getExecutionTime(startTime));
 
         return ResponseEntity.ok(response);
     }

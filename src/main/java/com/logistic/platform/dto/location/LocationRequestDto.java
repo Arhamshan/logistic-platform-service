@@ -1,6 +1,8 @@
 package com.logistic.platform.dto.location;
 
 import com.logistic.common.entity.Location;
+import com.logistic.common.enums.LocationType;
+import com.logistic.common.util.CommonUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,7 +27,7 @@ public class LocationRequestDto {
         Location loc = new Location();
 
         loc.setName(this.name);
-        loc.setType(this.type);
+        loc.setType(!CommonUtils.isBlankString(this.type) ? LocationType.valueOf(this.type) : null);
         loc.setCity(this.city);
         loc.setCountry(this.country);
         loc.setLatitude(this.latitude);

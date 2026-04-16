@@ -48,7 +48,7 @@ public class LocationWriterRepository implements LocationRepository {
 
                     ps.setString(1, location.getLocationCode());
                     ps.setString(2, location.getName());
-                    ps.setString(3, location.getType());
+                    ps.setString(3, location.getType() != null ? location.getType().name() : null);
                     ps.setString(4, location.getCity());
                     ps.setString(5, location.getCountry());
                     ps.setString(6, location.getLatitude());
