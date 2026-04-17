@@ -1,6 +1,7 @@
 package com.logistic.platform.repository.reader;
 
 import com.logistic.common.entity.Location;
+import com.logistic.common.enums.LocationType;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.repository.LocationRepository;
 import com.logistic.platform.util.LocationQueryUtil;
@@ -61,5 +62,48 @@ public class LocationReaderRepository implements LocationRepository {
         }
 
         return lastLocationCode;
+    }
+
+    @Override
+    public List<Location> findAllLocations(String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllLocations: ", requestId);
+
+        List<Location> locations = null;
+
+        try {
+
+            locations = this.jdbcTemplate.query(
+                    LocationQueryUtil.findAllLocationsQuery(),
+                    new RowMapper<Location>() {
+                        @Override
+                        public Location mapRow(ResultSet rs, int rowNum) throws SQLException {
+                            Location location = new Location();
+                            location.setId(rs.getLong("id"));
+                            location.setName(rs.getString("name"));
+                            location.setLocationCode(rs.getString("location_code"));
+                            location.setCountry(rs.getString("country"));
+                            location.setCity(rs.getString("city"));
+                            location.setType(LocationType.valueOf(rs.getString("type")));
+                            location.setLatitude(rs.getString("latitude"));
+                            location.setLongitude(rs.getString("longitude"));
+                            return location;
+                        }
+                    });
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findAllLocations: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findAllLocations: size={}|timeTaken={}",
+                    requestId,
+                    locations != null ? locations.size() : 0,
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return locations;
     }
 }

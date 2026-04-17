@@ -2,12 +2,15 @@ package com.logistic.platform.service.impl;
 
 import com.logistic.common.entity.Location;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.platform.dto.location.LocationResponseDto;
 import com.logistic.platform.repository.reader.LocationReaderRepository;
 import com.logistic.platform.repository.writer.LocationWriterRepository;
 import com.logistic.platform.service.LocationService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class LocationServiceImpl implements LocationService {
@@ -84,5 +87,33 @@ public class LocationServiceImpl implements LocationService {
 
         return newLocationCode;
 
+    }
+
+    @Override
+    public List<Location> getAllLocations(String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getAllLocations: ", requestId);
+
+        List<Location> locationList = null;
+
+        try {
+
+            locationList = readerRepository.findAllLocations(requestId);
+        } catch (Exception e) {
+
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getAllLocations: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getAllLocations: size={}|timeTaken={}",
+                    requestId,
+                    locationList != null ? locationList.size() : 0,
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return  locationList != null ? locationList : List.of();
     }
 }
