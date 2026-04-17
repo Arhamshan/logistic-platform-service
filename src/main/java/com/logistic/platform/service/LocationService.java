@@ -1,9 +1,6 @@
 package com.logistic.platform.service;
 
 import com.logistic.common.entity.Location;
-import com.logistic.platform.dto.location.LocationResponseDto;
-
-import java.util.List;
 
 public interface LocationService {
 
@@ -11,5 +8,4 @@ public interface LocationService {
 
     public String generateLocationCode(String requestId);
 
-    List<Location> getAllLocations(String requestId);
 }
