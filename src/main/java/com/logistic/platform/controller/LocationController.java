@@ -4,6 +4,7 @@ package com.logistic.platform.controller;
 import com.logistic.common.dto.ResponseDto;
 import com.logistic.common.entity.Location;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.platform.dto.location.GetAllLocationResponseDto;
 import com.logistic.platform.dto.location.LocationRequestDto;
 import com.logistic.platform.dto.location.LocationResponseDto;
 import com.logistic.platform.service.LocationService;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/v1/location")
@@ -73,6 +75,66 @@ public class LocationController {
             LOGGER.info("END [REST-LAYER] [RequestId={}] createLocation: response={}|timeTaken={}",
                     requestId, response, CommonUtils.getExecutionTime(startTime));
         }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<ResponseDto<List<GetAllLocationResponseDto>>> getAllLocations(
+            @RequestHeader("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] getAllLocations: ", requestId);
+
+        ResponseDto<List<GetAllLocationResponseDto>> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            // Service returns List<Location> (entities), not DTOs
+            List<Location> locations = service.getAllLocations(requestId);
+
+            if (locations == null) {
+                locations = List.of();
+            }
+
+            if(locations != null && !locations.isEmpty()) {
+                // Convert entities to DTOs in the CONTROLLER layer
+                List<GetAllLocationResponseDto> locationDtos = locations.stream()
+                        .map(location -> new GetAllLocationResponseDto(
+                                location.getId(),
+                                location.getName(),
+                                location.getLocationCode(),
+                                location.getCountry(),
+                                location.getCity(),
+                                location.getType().toString(),
+                                location.getLatitude(),
+                                location.getLongitude()))
+                        .toList();
+
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Locations fetched successfully");
+                response.setData(locationDtos);
+
+            } else {
+                response.setResponseCode(HttpStatus.NOT_FOUND.value());
+                response.setResponseMessage("No locations found");
+                response.setData(List.of());
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] getAllLocations: Ex={}",
+                    requestId, e.getMessage());
+
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to fetch locations.");
+            response.setData(null);
+        }
+
+        response.setTimestamp(LocalDateTime.now());
+
+        LOGGER.info("END [REST-LAYER] [RequestId={}] getAllLocations: timeTaken={}",
+                requestId, CommonUtils.getExecutionTime(startTime));
 
         return ResponseEntity.ok(response);
     }
