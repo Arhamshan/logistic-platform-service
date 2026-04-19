@@ -3,6 +3,8 @@ package com.logistic.platform.repository;
 import com.logistic.common.entity.Location;
 import com.logistic.platform.exception.LocationCreateException;
 
+import java.util.List;
+
 public interface LocationRepository {
 
     public default Long save(Location location, String requestId) throws LocationCreateException {
@@ -13,4 +15,7 @@ public interface LocationRepository {
         return null;
     }
 
+    public default List<Location> findAllLocations(String requestId){
+        return null;
+    };
 }
