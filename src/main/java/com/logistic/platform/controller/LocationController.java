@@ -148,7 +148,7 @@ public class LocationController {
         long startTime = System.currentTimeMillis();
 
         LOGGER.info("START [REST-LAYER] [RequestId={}] updateLocation: requestBody={}",
-                requestId, requestDto);
+                requestId, CommonUtils.convertToString(requestDto));
 
         ResponseDto<Void> response = new ResponseDto<>();
         response.setRequestId(requestId);
