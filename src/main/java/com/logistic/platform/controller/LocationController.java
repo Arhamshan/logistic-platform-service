@@ -7,6 +7,7 @@ import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.dto.location.GetAllLocationResponseDto;
 import com.logistic.platform.dto.location.LocationRequestDto;
 import com.logistic.platform.dto.location.LocationResponseDto;
+import com.logistic.platform.dto.location.UpdateLocationRequestDto;
 import com.logistic.platform.service.LocationService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -137,5 +138,70 @@ public class LocationController {
                 requestId, CommonUtils.getExecutionTime(startTime));
 
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping
+    public ResponseEntity<ResponseDto<Void>> updateLocation(
+            @RequestBody UpdateLocationRequestDto requestDto,
+            @RequestHeader("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] updateLocation", requestId);
+
+        ResponseDto<Void> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+
+            Location location = requestDto.toLocation();
+            // No need to set ID separately as it comes from requestDto
+
+            if (location.getName() == null || location.getType() == null || location.getCountry() == null ||
+                    location.getCity() == null || location.getType() == null) {
+
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Failed to update location");
+                response.setData(null);
+
+            } else {
+
+                Boolean isUpdated = service.updateLocation(location, requestId);
+
+                if (Boolean.TRUE.equals(isUpdated)) {
+
+                    // SUCCESS (200)
+                    response.setResponseCode(HttpStatus.OK.value());
+                    response.setResponseMessage("Location updated successfully");
+                    response.setData(null);
+
+                } else {
+
+                    // NOT FOUND treated as 400
+                    response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                    response.setResponseMessage("Failed to update location");
+                    response.setData(null);
+
+                }
+
+            }
+
+        } catch (Exception e) {
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] updateLocation: Ex={}",
+                    requestId, e.getMessage());
+
+            // INTERNAL ERROR (500)
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to update location");
+            response.setData(null);
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] updateLocation: timeTaken={}",
+                    requestId, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.status(HttpStatus.valueOf(response.getResponseCode())).body(response);
     }
 }

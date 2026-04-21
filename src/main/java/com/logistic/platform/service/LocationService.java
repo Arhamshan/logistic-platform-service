@@ -12,4 +12,6 @@ public interface LocationService {
     public String generateLocationCode(String requestId);
 
     List<Location> getAllLocations(String requestId);
+
+    Boolean updateLocation(Location location, String requestId);
 }

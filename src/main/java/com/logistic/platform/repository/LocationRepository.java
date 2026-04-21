@@ -18,4 +18,9 @@ public interface LocationRepository {
     public default List<Location> findAllLocations(String requestId){
         return null;
     };
+
+    public default Boolean update(Location location, String requestId){
+        return false;
+    };
+
 }

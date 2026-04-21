@@ -116,4 +116,30 @@ public class LocationServiceImpl implements LocationService {
 
         return  locationList != null ? locationList : List.of();
     }
+
+    @Override
+    public Boolean updateLocation(Location location, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateLocation: location={}",
+                requestId, CommonUtils.convertToString(location));
+
+        boolean isUpdated = false;
+
+        try {
+
+            isUpdated = writerRepository.update(location, requestId);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateLocation: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateLocation: isUpdated={}|timeTaken={}",
+                    requestId, isUpdated, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return isUpdated;
+    }
 }

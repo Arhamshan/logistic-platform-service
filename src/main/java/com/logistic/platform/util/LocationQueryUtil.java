@@ -58,4 +58,21 @@ public class LocationQueryUtil {
 
         return query.toString();
     }
+
+    public static String updateLocationQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append("UPDATE ");
+        query.append("\"Locations\" ");
+        query.append("SET ");
+        query.append("name = ?, ");
+        query.append("type = ?, ");
+        query.append("country = ?, ");
+        query.append("city = ?, ");
+        query.append("latitude = ?, ");
+        query.append("longitude = ? ");
+        query.append("WHERE ");
+        query.append("id = ?");
+
+        return query.toString();
+    }
 }

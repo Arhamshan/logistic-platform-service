@@ -81,4 +81,38 @@ public class LocationWriterRepository implements LocationRepository {
         return id;
     }
 
+    public Boolean update(Location location, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] updateLocation", requestId);
+
+        int rows = 0;
+
+        try {
+
+            String sql = LocationQueryUtil.updateLocationQuery();
+
+            rows = jdbcTemplate.update(sql,
+                    location.getName(),
+                    location.getType().name(),
+                    location.getCountry(),
+                    location.getCity(),
+                    location.getLatitude(),
+                    location.getLongitude(),
+                    location.getId()
+            );
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] updateLocation: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] updateLocation: rows={}|timeTaken={}",
+                    requestId, rows, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return rows > 0;
+    }
+
 }
