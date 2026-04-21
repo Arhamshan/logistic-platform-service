@@ -143,7 +143,7 @@ public class LocationController {
     @PutMapping
     public ResponseEntity<ResponseDto<Void>> updateLocation(
             @RequestBody UpdateLocationRequestDto requestDto,
-            @RequestHeader("requestId") String requestId) {
+            @RequestParam("requestId") String requestId) {
 
         long startTime = System.currentTimeMillis();
 
