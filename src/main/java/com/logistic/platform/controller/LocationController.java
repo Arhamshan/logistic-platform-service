@@ -147,7 +147,8 @@ public class LocationController {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REST-LAYER] [RequestId={}] updateLocation", requestId);
+        LOGGER.info("START [REST-LAYER] [RequestId={}] updateLocation: requestBody={}",
+                requestId, requestDto);
 
         ResponseDto<Void> response = new ResponseDto<>();
         response.setRequestId(requestId);
@@ -198,8 +199,9 @@ public class LocationController {
 
         } finally {
             response.setTimestamp(LocalDateTime.now());
-            LOGGER.info("END [REST-LAYER] [RequestId={}] updateLocation: timeTaken={}",
-                    requestId, CommonUtils.getExecutionTime(startTime));
+
+            LOGGER.info("END [REST-LAYER] [RequestId={}] updateLocation: responseBody={} | timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
         }
 
         return ResponseEntity.status(HttpStatus.valueOf(response.getResponseCode())).body(response);
