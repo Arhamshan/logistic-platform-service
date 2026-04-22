@@ -2,6 +2,7 @@ package com.logistic.platform.service.impl;
 
 import com.logistic.common.entity.User;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.common.enums.Status;
 import com.logistic.platform.repository.writer.UserWriterRepository;
 import com.logistic.platform.service.UserService;
 import org.apache.logging.log4j.LogManager;
@@ -36,7 +37,7 @@ public class UserServiceImpl implements UserService {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
 
             // ✅ Set status (String for now)
-            user.setStatus("ACTIVE");
+            user.setStatus(Status.ACTIVE);
 
             isCreated = userWriterRepository.save(user, requestId);
 

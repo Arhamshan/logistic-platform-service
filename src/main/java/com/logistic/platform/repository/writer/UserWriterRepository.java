@@ -33,8 +33,8 @@ public class UserWriterRepository implements UserRepository {
             rows = jdbcTemplate.update(sql,
                     user.getUsername(),
                     user.getPassword(),
-                    user.getRole(),
-                    user.getStatus()
+                    user.getRole().name(),
+                    user.getStatus().name()
             );
 
         } catch (Exception e) {

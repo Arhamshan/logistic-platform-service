@@ -2,6 +2,7 @@ package com.logistic.platform.dto.user;
 
 import com.logistic.common.entity.User;
 
+import com.logistic.common.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,8 @@ public class CreateUserRequestDto {
         User user = new User();
         user.setUsername(this.username);
         user.setPassword(this.password);
-        user.setRole(this.role); // from common-library
+        user.setRole(Role.valueOf(this.role.toUpperCase()));
+
         return user;
     }
 }
