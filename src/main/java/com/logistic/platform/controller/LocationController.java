@@ -68,8 +68,8 @@ public class LocationController {
             response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
             response.setResponseMessage("Failed to create location.");
 
-            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] createLocation: Ex={}|Trace={}", requestId,
-                    e.getMessage(), e.getStackTrace());
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] createLocation: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
 
         } finally {
             response.setTimestamp(LocalDateTime.now());
@@ -124,8 +124,8 @@ public class LocationController {
             }
 
         } catch (Exception e) {
-            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] getAllLocations: Ex={}",
-                    requestId, e.getMessage());
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] getAllLocations: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
 
             response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
             response.setResponseMessage("Failed to fetch locations.");
@@ -189,8 +189,8 @@ public class LocationController {
 
         } catch (Exception e) {
 
-            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] updateLocation: Ex={}",
-                    requestId, e.getMessage());
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] updateLocation: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
 
             // INTERNAL ERROR (500)
             response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
