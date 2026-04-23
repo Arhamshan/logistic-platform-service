@@ -11,9 +11,9 @@ public class UserQueryUtil {
 
         query.append("INSERT INTO ");
         query.append(" \"Users\" ");
-        query.append(" (username, password, role, status) ");
+        query.append(" (username, password, role, status, createdDate, createdBy, updatedDate, updatedBy) ");
         query.append("VALUES ");
-        query.append(" (?, ?, ?, ?) ");
+        query.append(" (?, ?, ?, ?, ?, ?, ?, ?) ");
 
         return query.toString();
     }

@@ -2,7 +2,6 @@ package com.logistic.platform.service.impl;
 
 import com.logistic.common.entity.Location;
 import com.logistic.common.util.CommonUtils;
-import com.logistic.platform.dto.location.LocationResponseDto;
 import com.logistic.platform.repository.reader.LocationReaderRepository;
 import com.logistic.platform.repository.writer.LocationWriterRepository;
 import com.logistic.platform.service.LocationService;
@@ -11,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class LocationServiceImpl implements LocationService {
@@ -141,5 +141,40 @@ public class LocationServiceImpl implements LocationService {
         }
 
         return isUpdated;
+    }
+
+    @Override
+    public Location getLocationByCode(String locationCode, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getLocationByCode: locationCode={}",
+                requestId, locationCode);
+
+        Location location = null;
+
+        try {
+            // repository returns single Location directly
+            location = readerRepository.findByLocationCode(locationCode, requestId);
+
+            if (location == null) {
+                LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getLocationByCode: Location not found for code={}",
+                        requestId, locationCode);
+            } else {
+                LOGGER.info("INFO [SERVICE-LAYER] [RequestId={}] getLocationByCode: Location found for code={}",
+                        requestId, locationCode);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getLocationByCode: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getLocationByCode: timeTaken={}",
+                    requestId, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return location;
     }
 }

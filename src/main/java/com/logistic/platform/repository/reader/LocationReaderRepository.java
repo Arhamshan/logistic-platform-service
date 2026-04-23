@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -105,5 +106,51 @@ public class LocationReaderRepository implements LocationRepository {
         }
 
         return locations;
+    }
+
+    @Override
+    public Location findByLocationCode(String locationCode, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findByLocationCode: locationCode={}",
+                requestId, locationCode);
+
+        List<Location> locations;
+
+        try {
+            String sql = LocationQueryUtil.findLocationByCodeQuery();
+
+            locations = jdbcTemplate.query(sql,
+                    new Object[]{locationCode},
+                    (rs, rowNum) -> {
+                        Location location = new Location();
+
+                        location.setId(rs.getLong("id"));
+                        location.setName(rs.getString("name"));
+                        location.setLocationCode(rs.getString("location_code"));
+                        location.setType(LocationType.valueOf(rs.getString("type")));
+                        location.setCity(rs.getString("city"));
+                        location.setCountry(rs.getString("country"));
+                        location.setLatitude(rs.getString("latitude"));
+                        location.setLongitude(rs.getString("longitude"));
+
+                        return location;
+                    });
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findByLocationCode: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findByLocationCode: timeTaken={}",
+                    requestId, CommonUtils.getExecutionTime(startTime));
+        }
+
+        // Return first location or null
+        if (locations != null && !locations.isEmpty()) {
+            return locations.get(0);
+        }
+        return null;
     }
 }
