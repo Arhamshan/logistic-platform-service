@@ -157,14 +157,6 @@ public class LocationServiceImpl implements LocationService {
             // repository returns single Location directly
             location = readerRepository.findByLocationCode(locationCode, requestId);
 
-            if (location == null) {
-                LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getLocationByCode: Location not found for code={}",
-                        requestId, locationCode);
-            } else {
-                LOGGER.info("INFO [SERVICE-LAYER] [RequestId={}] getLocationByCode: Location found for code={}",
-                        requestId, locationCode);
-            }
-
         } catch (Exception e) {
             LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getLocationByCode: Ex={}|Trace={}",
                     requestId, e.getMessage(), e.getStackTrace());
