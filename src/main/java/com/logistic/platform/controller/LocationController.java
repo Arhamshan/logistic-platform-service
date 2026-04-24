@@ -206,4 +206,53 @@ public class LocationController {
 
         return ResponseEntity.status(HttpStatus.valueOf(response.getResponseCode())).body(response);
     }
+
+    @GetMapping("/{locationCode}")
+    public ResponseEntity<ResponseDto<GetAllLocationResponseDto>> getLocationByCode(
+            @PathVariable("locationCode") String locationCode,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] getLocationByCode: locationCode={}",
+                requestId, locationCode);
+
+        ResponseDto<GetAllLocationResponseDto> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            Location location = service.getLocationByCode(locationCode, requestId);  //return single Location
+
+            if (location != null) {
+                GetAllLocationResponseDto dto = new GetAllLocationResponseDto(location);
+
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Location retrieved successfully");
+                response.setData(dto);  // Setting single DTO, not List
+
+            } else {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Location not found");
+                response.setData(null);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] getLocationByCode: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to get location");
+            response.setData(null);
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+
+            LOGGER.info("END [REST-LAYER] [RequestId={}] getLocationByCode: responseBody={} | timeTaken={}",
+                    requestId,
+                    CommonUtils.convertToString(response),
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.status(HttpStatus.valueOf(response.getResponseCode())).body(response);
+    }
 }

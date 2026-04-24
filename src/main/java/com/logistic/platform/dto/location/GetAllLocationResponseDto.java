@@ -1,5 +1,6 @@
 package com.logistic.platform.dto.location;
 
+import com.logistic.common.entity.Location;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,4 +27,15 @@ public class GetAllLocationResponseDto {
 
     private String longitude;
 
+
+    public GetAllLocationResponseDto(Location location) {
+        this.id = location.getId();
+        this.name = location.getName();
+        this.locationCode = location.getLocationCode();
+        this.country = location.getCountry();
+        this.city = location.getCity();
+        this.type = location.getType().name();
+        this.latitude = location.getLatitude();
+        this.longitude = location.getLongitude();
+    }
 }

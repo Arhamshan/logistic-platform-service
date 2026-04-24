@@ -23,4 +23,8 @@ public interface LocationRepository {
         return false;
     };
 
+    public default Location findByLocationCode(String locationCode, String requestId){
+        return null;
+    };
+
 }

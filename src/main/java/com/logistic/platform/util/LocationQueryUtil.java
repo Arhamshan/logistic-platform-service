@@ -75,4 +75,23 @@ public class LocationQueryUtil {
 
         return query.toString();
     }
+
+    public static String findLocationByCodeQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append("SELECT ");
+        query.append(" l.id, ");
+        query.append(" l.name, ");
+        query.append(" l.location_code, ");
+        query.append(" l.country, ");
+        query.append(" l.type, ");
+        query.append(" l.city, ");
+        query.append(" l.longitude, ");
+        query.append(" l.latitude ");
+        query.append("FROM ");
+        query.append(" \"Locations\" l ");
+        query.append("WHERE ");
+        query.append(" l.location_code = ? ");
+
+        return query.toString();
+    }
 }
