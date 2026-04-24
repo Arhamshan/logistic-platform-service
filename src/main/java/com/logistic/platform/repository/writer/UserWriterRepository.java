@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+
 @Repository
 public class UserWriterRepository implements UserRepository {
 
@@ -30,11 +33,21 @@ public class UserWriterRepository implements UserRepository {
 
             String sql = UserQueryUtil.createUserQuery();
 
+            // Convert LocalDateTime to Timestamp for JDBC
+            Timestamp createdTimestamp = user.getCreatedDate() != null ?
+                    Timestamp.valueOf(user.getCreatedDate()) : Timestamp.valueOf(LocalDateTime.now());
+            Timestamp updatedTimestamp = user.getUpdatedDate() != null ?
+                    Timestamp.valueOf(user.getUpdatedDate()) : Timestamp.valueOf(LocalDateTime.now());
+
             rows = jdbcTemplate.update(sql,
                     user.getUsername(),
                     user.getPassword(),
                     user.getRole().name(),
-                    user.getStatus().name()
+                    user.getStatus().name(),
+                    createdTimestamp,
+                    user.getCreatedBy(),
+                    updatedTimestamp,
+                    user.getUpdatedBy()
             );
 
         } catch (Exception e) {
