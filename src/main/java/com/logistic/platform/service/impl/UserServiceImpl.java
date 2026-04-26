@@ -17,10 +17,14 @@ public class UserServiceImpl implements UserService {
 
     private static final Logger LOGGER = LogManager.getLogger(UserServiceImpl.class);
 
-    @Autowired
-    private UserWriterRepository userWriterRepository;
+    private final UserWriterRepository writerRepository;
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder passwordEncoder;
+
+    public UserServiceImpl(UserWriterRepository writerRepository) {
+        this.writerRepository = writerRepository;
+        this.passwordEncoder = new BCryptPasswordEncoder();
+    }
 
     @Override
     public Boolean createUser(User user, String requestId) {
@@ -39,7 +43,7 @@ public class UserServiceImpl implements UserService {
             // ✅ Set status (String for now)
             user.setStatus(Status.ACTIVE);
 
-            isCreated = userWriterRepository.save(user, requestId);
+            isCreated = writerRepository.save(user, requestId);
 
         } catch (Exception e) {
 

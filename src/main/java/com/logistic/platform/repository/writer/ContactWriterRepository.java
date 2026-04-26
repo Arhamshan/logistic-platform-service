@@ -1,4 +1,4 @@
-package com.logistic.platform.repository;
+package com.logistic.platform.repository.writer;
 
 import com.logistic.common.entity.Contact;
 import com.logistic.platform.repository.ContactRepository;
@@ -16,15 +16,13 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
-
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 @Repository
-public class ContactRepositoryImpl implements ContactRepository {
+public class ContactWriterRepository implements ContactRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ContactRepositoryImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ContactWriterRepository.class);
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -67,8 +65,7 @@ public class ContactRepositoryImpl implements ContactRepository {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] saveContact: name={}, email={}",
-                requestId, contact.getName(), contact.getEmail());
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] saveContact: contact={}", requestId, CommonUtils.convertToString(contact));
 
         try {
             String sql = ContactQueryUtil.insertContactQuery();
@@ -88,26 +85,26 @@ public class ContactRepositoryImpl implements ContactRepository {
                 ps.setString(9, contact.getCountry());
                 ps.setString(10, contact.getLatitude());
                 ps.setString(11, contact.getLongitude());
-                ps.setTimestamp(12, Timestamp.valueOf(contact.getCreatedDate()));
+                ps.setTimestamp(12, Timestamp.valueOf(LocalDateTime.now()));
                 ps.setString(13, contact.getCreatedBy());
-                ps.setTimestamp(14, Timestamp.valueOf(contact.getUpdatedDate()));
+                ps.setTimestamp(14, Timestamp.valueOf(LocalDateTime.now()));
                 ps.setString(15, contact.getUpdatedBy());
                 return ps;
             }, keyHolder);
 
-            if (keyHolder.getKey() != null) {
-                contact.setId(keyHolder.getKey().longValue());
-            }
-
-            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] saveContact: contactId={} | timeTaken={}",
-                    requestId, contact.getId(), CommonUtils.getExecutionTime(startTime));
-
-            return contact;
+            Map<String, Object> keys = keyHolder.getKeys();
+            contact.setId((Long) keys.get("id"));
 
         } catch (Exception e) {
-            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] saveContact: Ex={}|Trace",
+            e.printStackTrace();
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] saveContact: Ex={}|Trace={}",
                     requestId, e.getMessage(), e.getStackTrace());
             throw new RuntimeException("Failed to save contact", e);
         }
+
+        LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] saveContact: contactId={}|timeTaken={}",
+                requestId, contact.getId(), CommonUtils.getExecutionTime(startTime));
+
+        return contact;
     }
 }
