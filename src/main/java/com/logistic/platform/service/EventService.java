@@ -8,9 +8,6 @@ import java.util.List;
 
 public interface EventService {
 
-    // Create/save a new event
-    Event createEvent(Event event, String requestId);
-
     // Save event with full Event object
     Event saveEvent(Event event, String requestId);
 

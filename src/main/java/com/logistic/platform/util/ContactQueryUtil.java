@@ -3,7 +3,7 @@ package com.logistic.platform.util;
 public class ContactQueryUtil {
     public static String insertContactQuery() {
         StringBuilder query = new StringBuilder();
-        query.append(" INSERT INTO Contacts (");
+        query.append(" INSERT INTO \"Contacts\" (");
         query.append("     name, ");
         query.append("     email, ");
         query.append("     phone, ");
@@ -51,7 +51,7 @@ public class ContactQueryUtil {
 
     public static String updateContactQuery() {
         StringBuilder query = new StringBuilder();
-        query.append(" UPDATE Contacts SET ");
+        query.append(" UPDATE \"Contacts\" SET ");
         query.append("     name = ?, ");
         query.append("     email = ?, ");
         query.append("     phone = ?, ");
@@ -71,7 +71,7 @@ public class ContactQueryUtil {
 
     public static String deleteContactByIdQuery() {
         StringBuilder query = new StringBuilder();
-        query.append(" DELETE FROM Contacts ");
+        query.append(" DELETE FROM \"Contacts\" ");
         query.append(" WHERE id = ? ");
         return query.toString();
     }

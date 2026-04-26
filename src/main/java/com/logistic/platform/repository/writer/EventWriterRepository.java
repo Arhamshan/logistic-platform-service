@@ -1,4 +1,4 @@
-package com.logistic.platform.repository;
+package com.logistic.platform.repository.writer;
 
 import com.logistic.common.entity.Event;
 import com.logistic.common.entity.Item;
@@ -9,7 +9,6 @@ import com.logistic.common.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -20,13 +19,12 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 @Repository
-public class EventRepositoryImpl implements EventRepository {
+public class EventWriterRepository implements EventRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventRepositoryImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EventWriterRepository.class);
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -71,8 +69,7 @@ public class EventRepositoryImpl implements EventRepository {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] saveEvent: itemId={}, eventType={}",
-                requestId, event.getItem() != null ? event.getItem().getId() : null, event.getEventType());
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] saveEvent: event={}", requestId, CommonUtils.convertToString(event));
 
         try {
             String sql = EventQueryUtil.insertEventQuery();
@@ -94,19 +91,19 @@ public class EventRepositoryImpl implements EventRepository {
                 return ps;
             }, keyHolder);
 
-            if (keyHolder.getKey() != null) {
-                event.setId(keyHolder.getKey().longValue());
-            }
-
-            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] saveEvent: eventId={} | timeTaken={}",
-                    requestId, event.getId(), CommonUtils.getExecutionTime(startTime));
-
-            return event;
+            Map<String, Object> keys = keyHolder.getKeys();
+            event.setId((Long) keys.get("id"));
 
         } catch (Exception e) {
             LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] saveEvent: Ex={}|Trace={}",
                     requestId, e.getMessage(), e.getStackTrace());
             throw new RuntimeException("Failed to save event", e);
         }
+
+        LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] saveEvent: eventId={}|   timeTaken={}",
+                requestId, event.getId(), CommonUtils.getExecutionTime(startTime));
+
+        return event;
     }
+
 }
