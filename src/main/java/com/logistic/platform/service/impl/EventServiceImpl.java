@@ -16,7 +16,6 @@ public class EventServiceImpl implements EventService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EventServiceImpl.class);
 
-
     private final EventWriterRepository eventWriterRepository;
 
     public EventServiceImpl(EventWriterRepository eventWriterRepository) {

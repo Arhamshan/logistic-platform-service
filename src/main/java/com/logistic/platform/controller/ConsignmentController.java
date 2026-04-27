@@ -45,12 +45,16 @@ public class ConsignmentController {
 
         try {
             Consignment consignment = requestDto.getConsignment();
+            String locationCode = requestDto.getLocationCode();
 
-            System.out.println("consignment :: " + CommonUtils.convertToString(consignment));
+            List<ItemProcessResult> results = service.save(consignment, locationCode, requestId);
 
-            List<ItemProcessResult> results = service.save(consignment, requestId);
+            if (results != null && !results.isEmpty() && results.get(0).getItemId() == null && results.get(0).getStatusCode() == 400) {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage(results.get(0).getMessage()); // Location not found for the locationCode
+                response.setData(null);
 
-            if (results == null || results.isEmpty()) {
+            }else if (results == null || results.isEmpty()) {
                 response.setResponseCode(HttpStatus.BAD_REQUEST.value());
                 response.setResponseMessage("Failed to create consignment.");
 
