@@ -9,6 +9,6 @@ import java.util.List;
 public interface ConsignmentService {
 
     // Save consignment
-    List<ItemProcessResult> save(Consignment consignment, String locationCode, String requestId);
+    List<ItemProcessResult> save(Consignment consignment, String requestId);
 
 }

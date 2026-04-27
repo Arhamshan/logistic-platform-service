@@ -51,7 +51,7 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
     @Override
     @Transactional
-    public List<ItemProcessResult> save(Consignment consignment, String locationCode, String requestId) {
+    public List<ItemProcessResult> save(Consignment consignment, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
@@ -60,17 +60,14 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
         List<ItemProcessResult> results = new ArrayList<>(  );
 
-        try {
 
+        try {
             //  location code validation
-            if (locationCode == null || locationCode.trim().isEmpty()) {
-                results.add(new ItemProcessResult(
-                        null,
-                        consignment.getConsignmentId(),
-                        400,
-                        "Location not found for the locationCode"
-                ));
-                return results;
+            String locationCode = null;
+
+            if (consignment.getItems().isEmpty()){
+                consignment.getItems().get(0).getCurrentLocationCode();
+                throw new IllegalArgumentException("Items cannot be empty");
             }
 
             Location location = locationService.getLocationByCode(locationCode, requestId);
@@ -81,8 +78,7 @@ public class ConsignmentServiceImpl implements ConsignmentService {
                         400,
                         "Location not found for the locationCode"
                 ));
-                return results;
-            }else {
+            } else {
                 // save sender contact
                 Contact savedSenderContact = contactService.createContact(consignment.getSenderContact(), requestId);
 
