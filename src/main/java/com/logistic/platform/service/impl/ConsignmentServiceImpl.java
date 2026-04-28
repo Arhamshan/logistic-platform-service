@@ -68,16 +68,13 @@ public class ConsignmentServiceImpl implements ConsignmentService {
             if (!consignment.getItems().isEmpty()) {
                 locationCode = consignment.getItems().get(0).getCurrentLocationCode();
             }
+            results.add(new ItemProcessResult(
+                    null,
+                    consignment.getConsignmentId(),
+                    400,
+                    "Location not found for the locationCode"
+            ));
 
-            if (locationCode == null || locationCode.trim().isEmpty()) {
-                results.add(new ItemProcessResult(
-                        null,
-                        consignment.getConsignmentId(),
-                        400,
-                        "Location not found for the locationCode"
-                ));
-                return results;
-            }
 
             Location location = locationService.getLocationByCode(locationCode, requestId);
             if (location == null) {
