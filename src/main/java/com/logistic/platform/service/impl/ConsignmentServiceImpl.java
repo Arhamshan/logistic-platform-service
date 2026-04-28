@@ -65,9 +65,18 @@ public class ConsignmentServiceImpl implements ConsignmentService {
             //  location code validation
             String locationCode = null;
 
-            if (consignment.getItems().isEmpty()){
-                consignment.getItems().get(0).getCurrentLocationCode();
-                throw new IllegalArgumentException("Items cannot be empty");
+            if (!consignment.getItems().isEmpty()) {
+                locationCode = consignment.getItems().get(0).getCurrentLocationCode();
+            }
+
+            if (locationCode == null || locationCode.trim().isEmpty()) {
+                results.add(new ItemProcessResult(
+                        null,
+                        consignment.getConsignmentId(),
+                        400,
+                        "Location not found for the locationCode"
+                ));
+                return results;
             }
 
             Location location = locationService.getLocationByCode(locationCode, requestId);
