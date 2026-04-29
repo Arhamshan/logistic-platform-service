@@ -2,6 +2,7 @@ package com.logistic.platform.service.impl;
 
 import com.logistic.common.entity.Consignment;
 import com.logistic.common.entity.Contact;
+import com.logistic.common.entity.Location;
 import com.logistic.common.enums.ConsignmentStatus;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
@@ -10,7 +11,7 @@ import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.service.ContactService;
 import com.logistic.platform.service.EventService;
 import com.logistic.platform.service.ItemService;
-import com.logistic.platform.vo.ItemProcessResult;
+import com.logistic.platform.vo.ItemProcessResultVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,74 +33,96 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
     private final ConsignmentWriterRepository writerRepository;
 
+    private final LocationServiceImpl locationService;
+
     public ConsignmentServiceImpl(ContactService contactService,
                                   EventService eventService,
                                   ItemService itemService,
-                                  ConsignmentWriterRepository writerRepository) {
+                                  ConsignmentWriterRepository writerRepository,
+                                  LocationServiceImpl locationService) {
 
         this.contactService = contactService;
         this.eventService = eventService;
         this.itemService = itemService;
         this.writerRepository = writerRepository;
+        this.locationService = locationService;
     }
 
     @Override
     @Transactional
-    public List<ItemProcessResult> save(Consignment consignment, String requestId) {
+    public List<ItemProcessResultVo> save(Consignment consignment, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
         LOGGER.info("START [SERVICE-LAYER] [RequestId={}] save: consignment={}",
                 requestId, CommonUtils.convertToString(consignment));
 
-        List<ItemProcessResult> results = new ArrayList<>(  );
+        List<ItemProcessResultVo> results = new ArrayList<>(  );
 
         try {
-            // save sender contact
-            Contact savedSenderContact = contactService.createContact(consignment.getSenderContact(), requestId);
+            //  location code validation
+            String locationCode = null;
 
-            if (savedSenderContact != null) {
-                consignment.getSenderContact().setId(savedSenderContact.getId());
+            if (!consignment.getItems().isEmpty()) {
+                locationCode = consignment.getItems().get(0).getCurrentLocationCode();
             }
 
-            // save destination contact
-            Contact savedDestinationContact = contactService.createContact(consignment.getDestinationContact(), requestId);
+            Location location = locationService.getLocationByCode(locationCode, requestId);
+            if (location == null) {
+                results.add(new ItemProcessResultVo(
+                        null,
+                        consignment.getConsignmentId(),
+                        400,
+                        "Location not found for the locationCode"
+                ));
 
-            if (savedDestinationContact != null) {
-                consignment.getDestinationContact().setId(savedDestinationContact.getId());
-            }
+            } else {
+                // save sender contact
+                Contact savedSenderContact = contactService.createContact(consignment.getSenderContact(), requestId);
 
-            consignment.setStatus(ConsignmentStatus.BOOKED);
+                if (savedSenderContact != null) {
+                    consignment.getSenderContact().setId(savedSenderContact.getId());
+                }
 
-            // save consignment
-            Long consId = writerRepository.save(consignment, requestId);
-            consignment.setId(consId);
+                // save destination contact
+                Contact savedDestinationContact = contactService.createContact(consignment.getDestinationContact(), requestId);
 
-            // save items and generate response
-            consignment.getItems().forEach(item -> {
-                item.setConsignment(new Consignment(consignment.getId(), consignment.getConsignmentId()));
-                item.setStatus(ItemStatus.BOOKED);
+                if (savedDestinationContact != null) {
+                    consignment.getDestinationContact().setId(savedDestinationContact.getId());
+                }
 
-                try {
-                    Boolean isItemSaved = itemService.save(item, requestId);
+                consignment.setStatus(ConsignmentStatus.BOOKED);
 
-                    if (isItemSaved) {
-                        results.add(new ItemProcessResult(
+                // save consignment
+                Long consId = writerRepository.save(consignment, requestId);
+                consignment.setId(consId);
+
+                // save items and generate response
+                consignment.getItems().forEach(item -> {
+                    item.setConsignment(new Consignment(consignment.getId(), consignment.getConsignmentId()));
+                    item.setStatus(ItemStatus.BOOKED);
+
+                    try {
+                        Boolean isItemSaved = itemService.save(item, requestId);
+
+                        if (isItemSaved) {
+                            results.add(new ItemProcessResultVo(
+                                    item.getItemId(),
+                                    consignment.getConsignmentId(),
+                                    201,
+                                    "Item created successfully"
+                            ));
+                        }
+                    } catch (Exception e) {
+                        results.add(new ItemProcessResultVo(
                                 item.getItemId(),
                                 consignment.getConsignmentId(),
-                                201,
-                                "Item created successfully"
+                                400,
+                                "Failed to create item"
                         ));
                     }
-                } catch (Exception e) {
-                    results.add(new ItemProcessResult(
-                            item.getItemId(),
-                            consignment.getConsignmentId(),
-                            400,
-                            "Failed to create item"
-                    ));
-                }
-            });
+                });
+            }
 
         } catch (Exception e) {
             LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] save: Ex={}|Trace={}",
