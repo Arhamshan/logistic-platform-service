@@ -6,13 +6,12 @@ import com.logistic.common.entity.Location;
 import com.logistic.common.enums.ConsignmentStatus;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
-import com.logistic.platform.repository.ConsignmentRepository;
 import com.logistic.platform.repository.writer.ConsignmentWriterRepository;
 import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.service.ContactService;
 import com.logistic.platform.service.EventService;
 import com.logistic.platform.service.ItemService;
-import com.logistic.platform.vo.ItemProcessResult;
+import com.logistic.platform.vo.ItemProcessResultVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -51,15 +50,14 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
     @Override
     @Transactional
-    public List<ItemProcessResult> save(Consignment consignment, String requestId) {
+    public List<ItemProcessResultVo> save(Consignment consignment, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
         LOGGER.info("START [SERVICE-LAYER] [RequestId={}] save: consignment={}",
                 requestId, CommonUtils.convertToString(consignment));
 
-        List<ItemProcessResult> results = new ArrayList<>(  );
-
+        List<ItemProcessResultVo> results = new ArrayList<>(  );
 
         try {
             //  location code validation
@@ -68,22 +66,16 @@ public class ConsignmentServiceImpl implements ConsignmentService {
             if (!consignment.getItems().isEmpty()) {
                 locationCode = consignment.getItems().get(0).getCurrentLocationCode();
             }
-            results.add(new ItemProcessResult(
-                    null,
-                    consignment.getConsignmentId(),
-                    400,
-                    "Location not found for the locationCode"
-            ));
-
 
             Location location = locationService.getLocationByCode(locationCode, requestId);
             if (location == null) {
-                results.add(new ItemProcessResult(
+                results.add(new ItemProcessResultVo(
                         null,
                         consignment.getConsignmentId(),
                         400,
                         "Location not found for the locationCode"
                 ));
+
             } else {
                 // save sender contact
                 Contact savedSenderContact = contactService.createContact(consignment.getSenderContact(), requestId);
@@ -114,7 +106,7 @@ public class ConsignmentServiceImpl implements ConsignmentService {
                         Boolean isItemSaved = itemService.save(item, requestId);
 
                         if (isItemSaved) {
-                            results.add(new ItemProcessResult(
+                            results.add(new ItemProcessResultVo(
                                     item.getItemId(),
                                     consignment.getConsignmentId(),
                                     201,
@@ -122,7 +114,7 @@ public class ConsignmentServiceImpl implements ConsignmentService {
                             ));
                         }
                     } catch (Exception e) {
-                        results.add(new ItemProcessResult(
+                        results.add(new ItemProcessResultVo(
                                 item.getItemId(),
                                 consignment.getConsignmentId(),
                                 400,
