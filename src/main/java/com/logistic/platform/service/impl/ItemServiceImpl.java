@@ -4,14 +4,16 @@ import com.logistic.common.entity.Event;
 import com.logistic.common.entity.Item;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.platform.repository.reader.ItemReaderRepository;
 import com.logistic.platform.repository.writer.ItemWriterRepository;
-import com.logistic.platform.service.EventService;
 import com.logistic.platform.service.ItemService;
 import com.logistic.platform.util.ConsignmentUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class ItemServiceImpl implements ItemService {
@@ -20,11 +22,12 @@ public class ItemServiceImpl implements ItemService {
 
     private final ItemWriterRepository writerRepository;
 
-    private final EventService eventService;
+    private final ItemReaderRepository itemReaderRepository;
 
-    public ItemServiceImpl(ItemWriterRepository writerRepository, EventService eventService) {
+
+    public ItemServiceImpl(ItemWriterRepository writerRepository, ItemReaderRepository itemReaderRepository) {
         this.writerRepository = writerRepository;
-        this.eventService = eventService;
+        this.itemReaderRepository = itemReaderRepository;
     }
 
     @Override
@@ -46,10 +49,6 @@ public class ItemServiceImpl implements ItemService {
                 isItemSaved = Boolean.TRUE;
 
                 item.setId(itemConsId);
-
-                Event eventByItem = getEventByItem(item, ItemStatus.BOOKED);
-
-                eventService.saveEvent(eventByItem, requestId);
             }
 
         } catch (Exception e) {
@@ -64,16 +63,69 @@ public class ItemServiceImpl implements ItemService {
         return isItemSaved;
     }
 
-    private Event getEventByItem(Item item, ItemStatus itemStatus) {
-        Event event = new Event();
+    @Override
+    public Item getItemByConsignmentIdAndItemId(String itemId,
+                            String consignmentId,
+                            String requestId) {
 
-        event.setItem(item);
-        event.setEventLocationCode(item.getCurrentLocationCode());
-        event.setEventType(ConsignmentUtil.getEventTypeByItemStatus(itemStatus));
-        event.setDescription(itemStatus.getDescription());
-        event.setCreatedBy(item.getCreatedBy());
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemById: itemId={} | consignmentId={}",
+                requestId, itemId, consignmentId);
 
-        return event;
+        try {
+
+            Item item = itemReaderRepository.findByItemId(itemId, consignmentId, requestId)
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("Item not found: " + itemId));
+
+            // Validate item-consignment relationship
+            if (item.getConsignment() == null ||
+                    item.getConsignment().getConsignmentId() == null) {
+
+                throw new IllegalStateException(
+                        "Consignment not assigned for itemId=" + itemId);
+            }
+
+            String dbConsignmentId =
+                    item.getConsignment().getConsignmentId();
+
+            if (!dbConsignmentId.equals(consignmentId)) {
+
+                throw new IllegalArgumentException(
+                        "Item does not belong to consignmentId=" + consignmentId);
+            }
+
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getItemById SUCCESS",
+                    requestId);
+
+            return item;
+
+        } catch (Exception e) {
+
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getItemById failed",
+                    requestId, e);
+
+            throw e;
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateStatusAndLocation(Item item, String requestId) {
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateStatusAndLocation",
+                requestId);
+
+        try {
+
+            writerRepository.updateItemStatusAndLocation(item, requestId);
+
+        } catch (Exception e) {
+
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateStatusAndLocation failed",
+                    requestId, e);
+
+            throw e;
+        }
     }
 
 }

@@ -6,10 +6,10 @@ import com.logistic.common.entity.Location;
 import com.logistic.common.enums.ConsignmentStatus;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.platform.repository.reader.ConsignmentReaderRepository;
 import com.logistic.platform.repository.writer.ConsignmentWriterRepository;
 import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.service.ContactService;
-import com.logistic.platform.service.EventService;
 import com.logistic.platform.service.ItemService;
 import com.logistic.platform.vo.ItemProcessResultVo;
 import org.slf4j.Logger;
@@ -27,25 +27,25 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
     private final ContactService contactService;
 
-    private final EventService eventService;
-
     private final ItemService itemService;
 
     private final ConsignmentWriterRepository writerRepository;
 
+    private final ConsignmentReaderRepository readerRepository;
+
     private final LocationServiceImpl locationService;
 
     public ConsignmentServiceImpl(ContactService contactService,
-                                  EventService eventService,
                                   ItemService itemService,
                                   ConsignmentWriterRepository writerRepository,
-                                  LocationServiceImpl locationService) {
+                                  LocationServiceImpl locationService,
+                                  ConsignmentReaderRepository readerRepository) {
 
         this.contactService = contactService;
-        this.eventService = eventService;
         this.itemService = itemService;
         this.writerRepository = writerRepository;
         this.locationService = locationService;
+        this.readerRepository = readerRepository;
     }
 
     @Override
@@ -134,5 +134,37 @@ public class ConsignmentServiceImpl implements ConsignmentService {
                 requestId, results, CommonUtils.getExecutionTime(startTime));
 
         return results;
+    }
+
+    @Override
+    @Transactional
+    public void updateConsignmentStatus(Consignment consignment, String requestId) {
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateStatus",
+                requestId);
+
+        try {
+
+            writerRepository.update(consignment, requestId);
+
+        } catch (Exception e) {
+
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateStatus failed",
+                    requestId, e);
+
+            throw e;
+        }
+    }
+
+    @Override
+    public Consignment getByConsignmentId(String consignmentId, String requestId) {
+
+        LOGGER.info("START [SERVICE-LAYER] getByConsignmentId={}", consignmentId);
+
+        return readerRepository
+                .findByConsignmentId(consignmentId, requestId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Consignment not found: " + consignmentId)
+                );
     }
 }

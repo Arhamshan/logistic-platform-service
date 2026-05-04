@@ -5,6 +5,15 @@ import java.util.List;
 
 public interface EventRepository {
 
-    Event save(Event event, String requestId);
+    public default Event save(Event event, String requestId){
+        return null;
+    };
 
+    public default List<Event> findByItemId(String itemId, String requestId){
+            return null;
+    };
+
+    public default List<Event> findByConsignmentId(String consignmentId, String requestId){
+        return null;
+    };
 }

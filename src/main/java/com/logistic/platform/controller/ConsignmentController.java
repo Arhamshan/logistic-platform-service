@@ -2,14 +2,10 @@ package com.logistic.platform.controller;
 
 import com.logistic.common.dto.ResponseDto;
 import com.logistic.common.entity.Consignment;
-import com.logistic.common.entity.Location;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.dto.consignment.CreateConsignmentRequestDto;
-import com.logistic.platform.dto.consignment.CreateConsignmentResponseDto;
-import com.logistic.platform.dto.location.LocationRequestDto;
-import com.logistic.platform.dto.location.LocationResponseDto;
 import com.logistic.platform.service.ConsignmentService;
-import com.logistic.platform.vo.ItemProcessResult;
+import com.logistic.platform.vo.ItemProcessResultVo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -32,7 +28,7 @@ public class ConsignmentController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseDto<List<ItemProcessResult>>> createConsignment(
+    public ResponseEntity<ResponseDto<List<ItemProcessResultVo>>> createConsignment(
             @RequestBody CreateConsignmentRequestDto requestDto,
             @RequestParam("requestId") String requestId) {
 
@@ -40,13 +36,13 @@ public class ConsignmentController {
 
         LOGGER.info("START [REST-LAYER] [RequestId={}] createLocation: ", requestId);
 
-        ResponseDto<List<ItemProcessResult>> response = new ResponseDto<>();
+        ResponseDto<List<ItemProcessResultVo>> response = new ResponseDto<>();
         response.setRequestId(requestId);
 
         try {
             Consignment consignment = requestDto.getConsignment();
 
-            List<ItemProcessResult> results = service.save(consignment, requestId);
+            List<ItemProcessResultVo> results = service.save(consignment, requestId);
 
             if (results != null && !results.isEmpty() && results.get(0).getItemId() == null && results.get(0).getStatusCode() == 400) {
                 response.setResponseCode(HttpStatus.BAD_REQUEST.value());

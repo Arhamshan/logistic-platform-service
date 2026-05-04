@@ -72,4 +72,25 @@ public class ItemWriterRepository implements ItemRepository {
 
         return consItemId;
     }
+
+    public void updateItemStatusAndLocation(Item item, String requestId) {
+
+        LOGGER.info("START [DB-WRITE] updateItemStatus itemId={}", item.getItemId());
+
+        try {
+            String sql = ItemQueryUtil.updateItemStatusAndLocationQuery();
+
+            jdbcTemplate.update(sql,
+                    item.getStatus().name(),
+                    item.getCurrentLocationCode(),
+                    LocalDateTime.now(),
+                    "SYSTEM",
+                    item.getItemId()
+            );
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR updating item", e);
+            throw new RuntimeException("Failed to update item", e);
+        }
+    }
 }

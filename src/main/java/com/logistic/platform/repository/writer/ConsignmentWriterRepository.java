@@ -72,4 +72,26 @@ public class ConsignmentWriterRepository implements ConsignmentRepository {
 
         return consId;
     }
+
+    public Consignment update(Consignment consignment, String requestId) {
+
+        LOGGER.info("START [DB-WRITE] updateConsignment consignmentId={}",
+                consignment.getConsignmentId());
+
+        try {
+            String sql = ConsignmentQueryUtil.updateConsignmentStatusQuery();
+
+            jdbcTemplate.update(sql,
+                    consignment.getStatus().name(),
+                    LocalDateTime.now(),
+                    "SYSTEM",
+                    consignment.getConsignmentId()
+            );
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR updating consignment", e);
+            throw new RuntimeException("Failed to update consignment", e);
+        }
+        return consignment;
+    }
 }

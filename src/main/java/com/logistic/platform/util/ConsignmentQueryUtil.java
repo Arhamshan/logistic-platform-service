@@ -30,4 +30,33 @@ public class ConsignmentQueryUtil {
         return query.toString();
     }
 
+    public static String updateConsignmentStatusQuery() {
+        StringBuilder query = new StringBuilder();
+
+        query.append(" UPDATE \"Consignments\" ");
+        query.append(" SET status = ?, ");
+        query.append("     updated_date = ?, ");
+        query.append("     updated_by = ? ");
+        query.append(" WHERE consignment_id = ? ");
+
+        return query.toString();
+    }
+
+    public static String findConsignmentByIdQuery() {
+
+        StringBuilder query = new StringBuilder();
+
+        query.append(" SELECT ");
+        query.append("     id, ");
+        query.append("     consignment_id, ");
+        query.append("     status, ");
+        query.append("     created_date, ");
+        query.append("     created_by, ");
+        query.append("     updated_date, ");
+        query.append("     updated_by ");
+        query.append(" FROM \"Consignments\" ");
+        query.append(" WHERE consignment_id = ? ");
+
+        return query.toString();
+    }
 }
