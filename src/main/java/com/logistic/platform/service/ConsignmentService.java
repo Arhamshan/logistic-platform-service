@@ -10,8 +10,6 @@ public interface ConsignmentService {
     // Save consignment
     List<ItemProcessResultVo> save(Consignment consignment, String requestId);
 
-    void updateConsignmentStatus(Consignment consignment, String requestId);
-
-    Consignment getByConsignmentId(String consignmentId, String requestId);
+    void updateStatus(Consignment consignment, String requestId);
 
 }

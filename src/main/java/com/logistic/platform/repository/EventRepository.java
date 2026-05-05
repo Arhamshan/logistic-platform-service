@@ -9,11 +9,4 @@ public interface EventRepository {
         return null;
     };
 
-    public default List<Event> findByItemId(String itemId, String requestId){
-            return null;
-    };
-
-    public default List<Event> findByConsignmentId(String consignmentId, String requestId){
-        return null;
-    };
 }

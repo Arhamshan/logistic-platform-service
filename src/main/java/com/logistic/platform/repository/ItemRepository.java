@@ -15,7 +15,7 @@ public interface ItemRepository {
         return Optional.empty();
     };
 
-    public default Item update(Item item, String requestId){
+    public default Item updateItemStatusAndLocation(Item item, String requestId){
         return null;
     };
 

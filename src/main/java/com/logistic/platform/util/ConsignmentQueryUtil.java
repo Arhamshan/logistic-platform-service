@@ -37,7 +37,7 @@ public class ConsignmentQueryUtil {
         query.append(" SET status = ?, ");
         query.append("     updated_date = ?, ");
         query.append("     updated_by = ? ");
-        query.append(" WHERE consignment_id = ? ");
+        query.append(" WHERE id = ? ");
 
         return query.toString();
     }

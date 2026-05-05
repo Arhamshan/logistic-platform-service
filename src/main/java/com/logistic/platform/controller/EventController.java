@@ -35,15 +35,19 @@ public class EventController {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REST-LAYER] [RequestId={}] createEvent: request={}",
-                requestId, CommonUtils.convertToString(requestDto));
+        String methodName = Thread.currentThread()
+                .getStackTrace()[1]
+                .getMethodName();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] [{}] request={}",
+                requestId, methodName, CommonUtils.convertToString(requestDto));
 
         ResponseDto<Void> response = new ResponseDto<>();
         response.setRequestId(requestId);
         response.setTimestamp(LocalDateTime.now());
 
         try {
-            // 🔥 DTO → ENTITY mapping
+
             Event event = new Event();
             event.setEventType(EventType.valueOf(requestDto.getEventType()));
             event.setEventLocationCode(requestDto.getLocationCode());
@@ -62,15 +66,6 @@ public class EventController {
 
             eventService.createEvent(event, requestId);
 
-            // itemservice.getitembyconsignmentidAndItemId()
-            // eventservice.saveEvent() - existing one
-            // itemService.updateStatus()
-            // consignmentService.updateStatus()
-
-
-
-
-
             response.setResponseCode(HttpStatus.OK.value());
             response.setResponseMessage("Event created successfully");
             response.setData(null);
@@ -78,25 +73,32 @@ public class EventController {
             LOGGER.info("END [REST-LAYER] [RequestId={}] createEvent: timeTaken={}",
                     requestId, CommonUtils.getExecutionTime(startTime));
 
-            return ResponseEntity.ok(response);
-
         } catch (IllegalArgumentException e) {
-            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] {}", requestId, e.getMessage());
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] [{}] {}",
+                    requestId, methodName, e.getMessage());
 
             response.setResponseCode(HttpStatus.BAD_REQUEST.value());
             response.setResponseMessage("Failed to create event");
             response.setData(null);
 
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-
         } catch (Exception e) {
-            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] createEvent failed", requestId, e);
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] [{}] Ex={} | Trace={}",
+                    requestId, methodName, e.getMessage(), e.getStackTrace());
 
             response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
             response.setResponseMessage("Failed to create event");
             response.setData(null);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }finally {
+            response.setTimestamp(LocalDateTime.now());
+
+            LOGGER.info("END [REST-LAYER] [RequestId={}] [{}] response={} | timeTaken={}",
+                    requestId,
+                    methodName,
+                    CommonUtils.convertToString(response),
+                    CommonUtils.getExecutionTime(startTime));
         }
+        return ResponseEntity.ok(response);
     }
 }

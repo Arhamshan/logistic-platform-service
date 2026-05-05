@@ -64,47 +64,33 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Item getItemByConsignmentIdAndItemId(String itemId,
-                            String consignmentId,
-                            String requestId) {
+    public Item getItemByConsignmentIdAndItemId(String itemId, String consignmentId, String requestId) {
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemById: itemId={} | consignmentId={}",
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemByConsignmentIdAndItemId: itemId={}|consignmentId={}",
                 requestId, itemId, consignmentId);
+
+        Item item = null;
 
         try {
 
-            Item item = itemReaderRepository.findByItemId(itemId, consignmentId, requestId)
+            item = itemReaderRepository.findByItemId(itemId, consignmentId, requestId)
                     .orElseThrow(() ->
                             new IllegalArgumentException("Item not found: " + itemId));
-
-            // Validate item-consignment relationship
-            if (item.getConsignment() == null ||
-                    item.getConsignment().getConsignmentId() == null) {
-
-                throw new IllegalStateException(
-                        "Consignment not assigned for itemId=" + itemId);
-            }
-
-            String dbConsignmentId =
-                    item.getConsignment().getConsignmentId();
-
-            if (!dbConsignmentId.equals(consignmentId)) {
-
-                throw new IllegalArgumentException(
-                        "Item does not belong to consignmentId=" + consignmentId);
-            }
-
-            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getItemById SUCCESS",
-                    requestId);
-
             return item;
 
         } catch (Exception e) {
 
-            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getItemById failed",
-                    requestId, e);
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getItemByConsignmentIdAndItemId: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
 
             throw e;
+
+        } finally {
+
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getItemByConsignmentIdAndItemId: itemId={}|timeTaken={}",
+                    requestId, itemId, CommonUtils.getExecutionTime(startTime));
         }
     }
 
@@ -112,8 +98,10 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public void updateStatusAndLocation(Item item, String requestId) {
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateStatusAndLocation",
-                requestId);
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateStatusAndLocation: itemId={}|id={}",
+                requestId, item.getItemId(), item.getId());
 
         try {
 
@@ -121,11 +109,15 @@ public class ItemServiceImpl implements ItemService {
 
         } catch (Exception e) {
 
-            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateStatusAndLocation failed",
-                    requestId, e);
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateStatusAndLocation: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
 
             throw e;
+
+        } finally {
+
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateStatusAndLocation: itemId={}|timeTaken={}",
+                    requestId, item.getItemId(), CommonUtils.getExecutionTime(startTime));
         }
     }
-
 }

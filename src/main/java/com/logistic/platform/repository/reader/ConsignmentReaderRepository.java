@@ -22,31 +22,4 @@ public class ConsignmentReaderRepository implements ConsignmentRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    @Override
-    public Optional<Consignment> findByConsignmentId(String consignmentId, String requestId) {
-
-        LOGGER.info("START [DB-READ] findConsignmentById={}", consignmentId);
-
-        try {
-            String sql = ConsignmentQueryUtil.findConsignmentByIdQuery();
-
-            List<Consignment> result = jdbcTemplate.query(sql, (rs, rowNum) -> {
-                Consignment consignment = new Consignment();
-
-                consignment.setId(rs.getLong("id"));
-                consignment.setConsignmentId(rs.getString("consignment_id"));
-                consignment.setStatus(ConsignmentStatus.valueOf(rs.getString("status")));
-                consignment.setCreatedDate(rs.getTimestamp("created_date").toLocalDateTime());
-                consignment.setUpdatedDate(rs.getTimestamp("updated_date").toLocalDateTime());
-
-                return consignment;
-            }, consignmentId);
-
-            return result.stream().findFirst();
-
-        } catch (Exception e) {
-            LOGGER.error("ERROR fetching consignment", e);
-            throw new RuntimeException("Failed to fetch consignment", e);
-        }
-    }
 }

@@ -138,33 +138,29 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
     @Override
     @Transactional
-    public void updateConsignmentStatus(Consignment consignment, String requestId) {
+    public void updateStatus(Consignment consignment, String requestId) {
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateStatus",
-                requestId);
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateConsignmentStatus: consignmentId={}|id={}",
+                requestId, consignment.getConsignmentId(), consignment.getId());
 
         try {
 
-            writerRepository.update(consignment, requestId);
+            writerRepository.updateStatus(consignment, requestId);
 
         } catch (Exception e) {
 
-            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateStatus failed",
-                    requestId, e);
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateConsignmentStatus: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
 
             throw e;
+
+        } finally {
+
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateConsignmentStatus: timeTaken={}",
+                    requestId, CommonUtils.getExecutionTime(startTime));
         }
     }
 
-    @Override
-    public Consignment getByConsignmentId(String consignmentId, String requestId) {
-
-        LOGGER.info("START [SERVICE-LAYER] getByConsignmentId={}", consignmentId);
-
-        return readerRepository
-                .findByConsignmentId(consignmentId, requestId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Consignment not found: " + consignmentId)
-                );
-    }
 }

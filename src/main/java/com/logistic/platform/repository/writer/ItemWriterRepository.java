@@ -73,9 +73,12 @@ public class ItemWriterRepository implements ItemRepository {
         return consItemId;
     }
 
-    public void updateItemStatusAndLocation(Item item, String requestId) {
+    public Item updateItemStatusAndLocation(Item item, String requestId) {
 
-        LOGGER.info("START [DB-WRITE] updateItemStatus itemId={}", item.getItemId());
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] updateItemStatusAndLocation: itemId={}|id={}",
+                requestId, item.getItemId(), item.getId());
 
         try {
             String sql = ItemQueryUtil.updateItemStatusAndLocationQuery();
@@ -85,12 +88,20 @@ public class ItemWriterRepository implements ItemRepository {
                     item.getCurrentLocationCode(),
                     LocalDateTime.now(),
                     "SYSTEM",
-                    item.getItemId()
+                    item.getId()
             );
 
         } catch (Exception e) {
-            LOGGER.error("ERROR updating item", e);
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] updateItemStatusAndLocation: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
             throw new RuntimeException("Failed to update item", e);
+        } finally {
+
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] updateItemStatusAndLocation: id={}|timeTaken={}",
+                    requestId, item.getId(), CommonUtils.getExecutionTime(startTime));
         }
+
+        return item;
     }
 }

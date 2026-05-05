@@ -25,9 +25,6 @@ public class EventServiceImpl implements EventService {
     private static final Logger LOGGER = LoggerFactory.getLogger(EventServiceImpl.class);
 
     private final EventWriterRepository eventWriterRepository;
-    //private final ItemWriterRepository itemWriterRepository;
-    //private final ConsignmentWriterRepository consignmentWriterRepository;
-
     private final ItemService itemService;
     private final ConsignmentService consignmentService;
 
@@ -80,30 +77,7 @@ public class EventServiceImpl implements EventService {
                 requestId, CommonUtils.convertToString(event));
 
         try {
-
-            // 1. Validate request
-            if (event.getItem() == null) {
-                throw new IllegalArgumentException("Item details are required");
-            }
-
-            if (event.getItem().getItemId() == null) {
-                throw new IllegalArgumentException("ItemId is required");
-            }
-
-            if (event.getItem().getConsignment() == null ||
-                    event.getItem().getConsignment().getConsignmentId() == null) {
-
-                throw new IllegalArgumentException("ConsignmentId is required");
-            }
-
-            if (event.getEventLocationCode() == null) {
-                throw new IllegalArgumentException("LocationCode is required");
-            }
-
-            if (event.getEventType() == null) {
-                throw new IllegalArgumentException("EventType is required");
-            }
-
+            // 1. Extract itemId & consignmentId from event
             String itemId = event.getItem().getItemId();
 
             String consignmentId = event.getItem()
@@ -139,31 +113,23 @@ public class EventServiceImpl implements EventService {
             // 6. Update Item
             updateItem(item, event, requestId);
 
-            // 7. Update Consignment
-            Consignment consignment = consignmentService
-                    .getByConsignmentId(item.getConsignment().getConsignmentId(), requestId);
+            // 7. Get consignment from already fetched item — no extra DB call needed
+            Consignment consignment = item.getConsignment();
 
+            // 8. Update Consignment
             updateConsignment(consignment, event, requestId);
 
-            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] createEvent SUCCESS | timeTaken={}",
-                    requestId,
-                    CommonUtils.getExecutionTime(startTime));
+        }catch (Exception e) {
 
-        } catch (IllegalArgumentException | IllegalStateException e) {
-
-            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] createEvent: {}",
-                    requestId,
-                    e.getMessage());
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] createEvent: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
 
             throw e;
 
-        } catch (Exception e) {
+        } finally {
 
-            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] createEvent failed",
-                    requestId,
-                    e);
-
-            throw new RuntimeException("Failed to create event", e);
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] createEvent: timeTaken={}",
+                    requestId, CommonUtils.getExecutionTime(startTime));
         }
     }
 
@@ -172,7 +138,6 @@ public class EventServiceImpl implements EventService {
         item.setCurrentLocationCode(event.getEventLocationCode());
         item.setUpdatedDate(LocalDateTime.now());
 
-        // need item service call - done
         itemService.updateStatusAndLocation(item, requestId);
     }
 
@@ -180,27 +145,28 @@ public class EventServiceImpl implements EventService {
         consignment.setStatus(mapConsignmentStatus(event.getEventType().name()));
         consignment.setUpdatedDate(LocalDateTime.now());
 
-        // need consignment service call - done
-        consignmentService.updateConsignmentStatus(consignment, requestId);
+        consignmentService.updateStatus(consignment, requestId);
     }
 
     private ItemStatus mapItemStatus(String eventType) {
         switch (eventType) {
-            case "PARCEL_PICKED_UP": return ItemStatus.PICKED_UP;
-            case "IN_TRANSIT": return ItemStatus.IN_TRANSIT;
-            case "OUT_FOR_DELIVERY": return ItemStatus.OUT_FOR_DELIVERY;
-            case "DELIVERED": return ItemStatus.DELIVERED;
-            default: return ItemStatus.BOOKED;
+            case "PARCEL_BOOKED":            return ItemStatus.BOOKED;
+            case "PARCEL_PICKED_UP":         return ItemStatus.PICKED_UP;
+            case "PARCEL_IN_TRANSIT":        return ItemStatus.IN_TRANSIT;
+            case "PARCEL_OUT_FOR_DELIVERY":  return ItemStatus.OUT_FOR_DELIVERY;
+            case "PARCEL_DELIVERED":         return ItemStatus.DELIVERED;
+            default: throw new IllegalArgumentException("Unknown eventType: " + eventType);
         }
     }
 
     private ConsignmentStatus mapConsignmentStatus(String eventType) {
         switch (eventType) {
-            case "PARCEL_PICKED_UP": return ConsignmentStatus.PICKED_UP;
-            case "IN_TRANSIT": return ConsignmentStatus.IN_TRANSIT;
-            case "OUT_FOR_DELIVERY": return ConsignmentStatus.OUT_FOR_DELIVERY;
-            case "DELIVERED": return ConsignmentStatus.DELIVERED;
-            default: return ConsignmentStatus.BOOKED;
+            case "PARCEL_BOOKED":            return ConsignmentStatus.BOOKED;
+            case "PARCEL_PICKED_UP":         return ConsignmentStatus.PICKED_UP;
+            case "PARCEL_IN_TRANSIT":        return ConsignmentStatus.IN_TRANSIT;
+            case "PARCEL_OUT_FOR_DELIVERY":  return ConsignmentStatus.OUT_FOR_DELIVERY;
+            case "PARCEL_DELIVERED":         return ConsignmentStatus.DELIVERED;
+            default: throw new IllegalArgumentException("Unknown eventType: " + eventType);
         }
     }
     }
