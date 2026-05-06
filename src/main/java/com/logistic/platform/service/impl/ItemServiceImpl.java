@@ -6,6 +6,7 @@ import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.repository.reader.ItemReaderRepository;
 import com.logistic.platform.repository.writer.ItemWriterRepository;
+import com.logistic.platform.service.EventService;
 import com.logistic.platform.service.ItemService;
 import com.logistic.platform.util.ConsignmentUtil;
 import org.slf4j.Logger;
@@ -24,10 +25,13 @@ public class ItemServiceImpl implements ItemService {
 
     private final ItemReaderRepository itemReaderRepository;
 
+    private final EventService eventService;
 
-    public ItemServiceImpl(ItemWriterRepository writerRepository, ItemReaderRepository itemReaderRepository) {
+
+    public ItemServiceImpl(ItemWriterRepository writerRepository, ItemReaderRepository itemReaderRepository, EventService eventService) {
         this.writerRepository = writerRepository;
         this.itemReaderRepository = itemReaderRepository;
+        this.eventService = eventService;
     }
 
     @Override
@@ -50,6 +54,9 @@ public class ItemServiceImpl implements ItemService {
 
                 item.setId(itemConsId);
             }
+            Event eventByItem = getEventByItem(item,item.getStatus());
+
+            eventService.saveEvent(eventByItem, requestId);
 
         } catch (Exception e) {
             LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] save: Ex={}|Trace={}",
@@ -63,6 +70,19 @@ public class ItemServiceImpl implements ItemService {
         return isItemSaved;
     }
 
+    private Event getEventByItem(Item item, ItemStatus itemStatus) {
+        Event event = new Event();
+
+        event.setItem(item);
+        event.setEventLocationCode(item.getCurrentLocationCode());
+        event.setEventType(ConsignmentUtil.getEventTypeByItemStatus(itemStatus));
+        event.setDescription(itemStatus.getDescription());
+        event.setCreatedBy(item.getCreatedBy());
+
+        return event;
+    }
+
+
     @Override
     public Item getItemByConsignmentIdAndItemId(String itemId, String consignmentId, String requestId) {
 
@@ -75,7 +95,7 @@ public class ItemServiceImpl implements ItemService {
 
         try {
 
-            item = itemReaderRepository.findByItemId(itemId, consignmentId, requestId)
+            item = itemReaderRepository.findByConsignmentIdAndItemId(itemId, consignmentId, requestId)
                     .orElseThrow(() ->
                             new IllegalArgumentException("Item not found: " + itemId));
             return item;
@@ -100,8 +120,8 @@ public class ItemServiceImpl implements ItemService {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateStatusAndLocation: itemId={}|id={}",
-                requestId, item.getItemId(), item.getId());
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateStatusAndLocation: item={}",
+                requestId, CommonUtils.convertToString(item));
 
         try {
 

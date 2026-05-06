@@ -55,8 +55,8 @@ public class ItemQueryUtil {
         query.append("     i.updated_by, ");
         query.append("     c.id  AS consignment_pk, ");
         query.append("     c.consignment_id ");
-        query.append(" FROM \"Items\" i ");
-        query.append(" INNER JOIN \"Consignments\" c ");
+        query.append(" FROM dev.\"Items\" i ");
+        query.append(" INNER JOIN dev.\"Consignments\" c ");
         query.append("     ON i.cons_id = c.id ");
         query.append(" WHERE i.item_id = ? ");
         query.append(" AND c.consignment_id = ? ");
