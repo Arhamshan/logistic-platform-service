@@ -98,7 +98,6 @@ public class ItemServiceImpl implements ItemService {
             item = itemReaderRepository.findByConsignmentIdAndItemId(itemId, consignmentId, requestId)
                     .orElseThrow(() ->
                             new IllegalArgumentException("Item not found: " + itemId));
-            return item;
 
         } catch (Exception e) {
 
@@ -112,6 +111,8 @@ public class ItemServiceImpl implements ItemService {
             LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getItemByConsignmentIdAndItemId: itemId={}|timeTaken={}",
                     requestId, itemId, CommonUtils.getExecutionTime(startTime));
         }
+
+        return item;
     }
 
     @Override

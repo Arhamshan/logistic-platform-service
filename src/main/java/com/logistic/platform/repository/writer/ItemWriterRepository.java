@@ -81,16 +81,20 @@ public class ItemWriterRepository implements ItemRepository {
         LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] updateItemStatusAndLocation: item={}",
                 requestId, CommonUtils.convertToString(item));
 
+        Boolean isUpdated = false;
+
         try {
             String sql = ItemQueryUtil.updateItemStatusAndLocationQuery();
 
-            jdbcTemplate.update(sql,
+            int rowsAffected =jdbcTemplate.update(sql,
                     item.getStatus().name(),
                     item.getCurrentLocationCode(),
                     LocalDateTime.now(),
                     item.getUpdatedBy(),
                     item.getId()
             );
+
+            isUpdated = (rowsAffected > 0);
 
         } catch (Exception e) {
             LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] updateItemStatusAndLocation: Ex={}|Trace={}",
@@ -103,6 +107,6 @@ public class ItemWriterRepository implements ItemRepository {
                     requestId, item.getId(), CommonUtils.getExecutionTime(startTime));
         }
 
-        return false;
+        return isUpdated;
     }
 }

@@ -3,14 +3,13 @@ package com.logistic.platform.service.impl;
 import com.logistic.common.entity.Consignment;
 import com.logistic.common.entity.Event;
 import com.logistic.common.entity.Item;
-import com.logistic.common.enums.ConsignmentStatus;
 import com.logistic.common.enums.EventType;
-import com.logistic.common.enums.ItemStatus;
 import com.logistic.platform.repository.writer.EventWriterRepository;
 import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.service.EventService;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.service.ItemService;
+import com.logistic.platform.util.ConsignmentUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -18,9 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-
-import static com.logistic.platform.util.ConsignmentUtil.mapConsignmentStatus;
-import static com.logistic.platform.util.ConsignmentUtil.mapItemStatus;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -135,7 +131,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private void updateItem(Item item, Event event, String requestId) {
-        item.setStatus(mapItemStatus(EventType.valueOf(event.getEventType().name())));
+        item.setStatus(ConsignmentUtil.mapItemStatus(EventType.valueOf(event.getEventType().name())));
         item.setCurrentLocationCode(event.getEventLocationCode());
         item.setUpdatedDate(LocalDateTime.now());
 
@@ -143,7 +139,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private void updateConsignment(Consignment consignment, Event event, String requestId) {
-        consignment.setStatus(mapConsignmentStatus(EventType.valueOf(event.getEventType().name())));
+        consignment.setStatus(ConsignmentUtil.mapConsignmentStatus(EventType.valueOf(event.getEventType().name())));
         consignment.setUpdatedDate(LocalDateTime.now());
 
         consignmentService.updateStatus(consignment, requestId);
