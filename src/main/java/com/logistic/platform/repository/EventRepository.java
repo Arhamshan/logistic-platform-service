@@ -5,6 +5,8 @@ import java.util.List;
 
 public interface EventRepository {
 
-    Event save(Event event, String requestId);
+    public default Event save(Event event, String requestId){
+        return null;
+    };
 
 }

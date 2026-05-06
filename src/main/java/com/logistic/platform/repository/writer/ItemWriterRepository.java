@@ -72,4 +72,41 @@ public class ItemWriterRepository implements ItemRepository {
 
         return consItemId;
     }
+
+
+    public Boolean updateItemStatusAndLocation(Item item, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] updateItemStatusAndLocation: item={}",
+                requestId, CommonUtils.convertToString(item));
+
+        Boolean isUpdated = false;
+
+        try {
+            String sql = ItemQueryUtil.updateItemStatusAndLocationQuery();
+
+            int rowsAffected =jdbcTemplate.update(sql,
+                    item.getStatus().name(),
+                    item.getCurrentLocationCode(),
+                    LocalDateTime.now(),
+                    item.getUpdatedBy(),
+                    item.getId()
+            );
+
+            isUpdated = (rowsAffected > 0);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] updateItemStatusAndLocation: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+            throw new RuntimeException("Failed to update item", e);
+        } finally {
+
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] updateItemStatusAndLocation: id={}|timeTaken={}",
+                    requestId, item.getId(), CommonUtils.getExecutionTime(startTime));
+        }
+
+        return isUpdated;
+    }
 }

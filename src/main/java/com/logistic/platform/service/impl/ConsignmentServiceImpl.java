@@ -6,11 +6,12 @@ import com.logistic.common.entity.Location;
 import com.logistic.common.enums.ConsignmentStatus;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.platform.repository.reader.ConsignmentReaderRepository;
 import com.logistic.platform.repository.writer.ConsignmentWriterRepository;
 import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.service.ContactService;
-import com.logistic.platform.service.EventService;
 import com.logistic.platform.service.ItemService;
+import com.logistic.platform.service.LocationService;
 import com.logistic.platform.vo.ItemProcessResultVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,25 +28,25 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
     private final ContactService contactService;
 
-    private final EventService eventService;
-
     private final ItemService itemService;
 
     private final ConsignmentWriterRepository writerRepository;
 
-    private final LocationServiceImpl locationService;
+    private final ConsignmentReaderRepository readerRepository;
+
+    private final LocationService locationService;
 
     public ConsignmentServiceImpl(ContactService contactService,
-                                  EventService eventService,
                                   ItemService itemService,
                                   ConsignmentWriterRepository writerRepository,
-                                  LocationServiceImpl locationService) {
+                                  LocationService locationService,
+                                  ConsignmentReaderRepository readerRepository) {
 
         this.contactService = contactService;
-        this.eventService = eventService;
         this.itemService = itemService;
         this.writerRepository = writerRepository;
         this.locationService = locationService;
+        this.readerRepository = readerRepository;
     }
 
     @Override
@@ -135,4 +136,32 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
         return results;
     }
+
+    @Override
+    @Transactional
+    public void updateStatus(Consignment consignment, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateStatus: consignment={}",
+                requestId, CommonUtils.convertToString(consignment));
+
+        try {
+
+            writerRepository.updateStatus(consignment, requestId);
+
+        } catch (Exception e) {
+
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateStatus: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+            throw e;
+
+        } finally {
+
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateStatus: timeTaken={}",
+                    requestId, CommonUtils.getExecutionTime(startTime));
+        }
+    }
+
 }
