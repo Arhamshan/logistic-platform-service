@@ -28,7 +28,7 @@ public class ItemReaderRepository implements ItemRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public Optional<Item> findByItemId(String itemId,
+    public Optional<Item> findByConsignmentIdAndItemId(String itemId,
                                        String consignmentId,
                                        String requestId) {
 
@@ -40,7 +40,7 @@ public class ItemReaderRepository implements ItemRepository {
         List<Item> result = null;
 
         try {
-            String sql = ItemQueryUtil.findItemByIdQuery();
+            String sql = ItemQueryUtil.findByItemIdAndConsignmentIdQuery();
 
             result = jdbcTemplate.query(sql, new Object[]{itemId, consignmentId},
                     new RowMapper<Item>() {

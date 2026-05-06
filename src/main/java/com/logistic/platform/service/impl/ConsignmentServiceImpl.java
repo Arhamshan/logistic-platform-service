@@ -11,6 +11,7 @@ import com.logistic.platform.repository.writer.ConsignmentWriterRepository;
 import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.service.ContactService;
 import com.logistic.platform.service.ItemService;
+import com.logistic.platform.service.LocationService;
 import com.logistic.platform.vo.ItemProcessResultVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,12 +34,12 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
     private final ConsignmentReaderRepository readerRepository;
 
-    private final LocationServiceImpl locationService;
+    private final LocationService locationService;
 
     public ConsignmentServiceImpl(ContactService contactService,
                                   ItemService itemService,
                                   ConsignmentWriterRepository writerRepository,
-                                  LocationServiceImpl locationService,
+                                  LocationService locationService,
                                   ConsignmentReaderRepository readerRepository) {
 
         this.contactService = contactService;
@@ -142,8 +143,8 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateConsignmentStatus: consignmentId={}|id={}",
-                requestId, consignment.getConsignmentId(), consignment.getId());
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateStatus: consignment={}",
+                requestId, CommonUtils.convertToString(consignment));
 
         try {
 
@@ -151,14 +152,14 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
         } catch (Exception e) {
 
-            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateConsignmentStatus: Ex={}|Trace={}",
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateStatus: Ex={}|Trace={}",
                     requestId, e.getMessage(), e.getStackTrace());
 
             throw e;
 
         } finally {
 
-            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateConsignmentStatus: timeTaken={}",
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateStatus: timeTaken={}",
                     requestId, CommonUtils.getExecutionTime(startTime));
         }
     }

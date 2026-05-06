@@ -35,12 +35,8 @@ public class EventController {
 
         long startTime = System.currentTimeMillis();
 
-        String methodName = Thread.currentThread()
-                .getStackTrace()[1]
-                .getMethodName();
-
-        LOGGER.info("START [REST-LAYER] [RequestId={}] [{}] request={}",
-                requestId, methodName, CommonUtils.convertToString(requestDto));
+        LOGGER.info("START [REST-LAYER] [RequestId={}] createEvent request={}",
+                requestId, CommonUtils.convertToString(requestDto));
 
         ResponseDto<Void> response = new ResponseDto<>();
         response.setRequestId(requestId);
@@ -61,8 +57,8 @@ public class EventController {
             Consignment consignment = new Consignment();
             consignment.setConsignmentId(requestDto.getConsignmentId());
 
-            event.setItem(item);
             item.setConsignment(consignment);
+            event.setItem(item);
 
             eventService.createEvent(event, requestId);
 
@@ -75,16 +71,16 @@ public class EventController {
 
         } catch (IllegalArgumentException e) {
 
-            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] [{}] {}",
-                    requestId, methodName, e.getMessage());
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] createEvent {}",
+                    requestId, e.getMessage());
 
             response.setResponseCode(HttpStatus.BAD_REQUEST.value());
             response.setResponseMessage("Failed to create event");
             response.setData(null);
 
         } catch (Exception e) {
-            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] [{}] Ex={} | Trace={}",
-                    requestId, methodName, e.getMessage(), e.getStackTrace());
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] createEvent Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
 
             response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
             response.setResponseMessage("Failed to create event");
@@ -93,9 +89,8 @@ public class EventController {
         }finally {
             response.setTimestamp(LocalDateTime.now());
 
-            LOGGER.info("END [REST-LAYER] [RequestId={}] [{}] response={} | timeTaken={}",
+            LOGGER.info("END [REST-LAYER] [RequestId={}] createEvent response={}|timeTaken={}",
                     requestId,
-                    methodName,
                     CommonUtils.convertToString(response),
                     CommonUtils.getExecutionTime(startTime));
         }

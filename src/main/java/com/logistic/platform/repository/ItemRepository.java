@@ -11,12 +11,12 @@ public interface ItemRepository {
         return null;
     };
 
-    public default Optional<Item> findByItemId(String itemId, String consignmentId, String requestId){
+    public default Optional<Item> findByConsignmentIdAndItemId(String itemId, String consignmentId, String requestId){
         return Optional.empty();
     };
 
-    public default Item updateItemStatusAndLocation(Item item, String requestId){
-        return null;
+    public default Boolean updateItemStatusAndLocation(Item item, String requestId){
+        return false;
     };
 
 }

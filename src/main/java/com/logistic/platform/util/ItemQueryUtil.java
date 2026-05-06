@@ -40,7 +40,7 @@ public class ItemQueryUtil {
         return query.toString();
     }
 
-    public static String findItemByIdQuery() {
+    public static String findByItemIdAndConsignmentIdQuery() {
         StringBuilder query = new StringBuilder();
 
         query.append(" SELECT ");

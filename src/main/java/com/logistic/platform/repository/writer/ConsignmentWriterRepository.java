@@ -73,12 +73,13 @@ public class ConsignmentWriterRepository implements ConsignmentRepository {
         return consId;
     }
 
-    public Consignment updateStatus(Consignment consignment, String requestId) {
+    public Boolean updateStatus(Consignment consignment, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] updateStatus: consignmentId={}|id={}",
-                requestId, consignment.getConsignmentId(), consignment.getId());
+        // print full object
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] updateStatus: consignment={}",
+                requestId, CommonUtils.convertToString(consignment));
 
         try {
             String sql = ConsignmentQueryUtil.updateConsignmentStatusQuery();
@@ -86,7 +87,7 @@ public class ConsignmentWriterRepository implements ConsignmentRepository {
             jdbcTemplate.update(sql,
                     consignment.getStatus().name(),
                     LocalDateTime.now(),
-                    "SYSTEM",
+                    consignment.getUpdatedBy(),
                     consignment.getId()
             );
 
@@ -101,6 +102,6 @@ public class ConsignmentWriterRepository implements ConsignmentRepository {
                     requestId, consignment.getId(), CommonUtils.getExecutionTime(startTime));
         }
 
-        return consignment;
+        return false;
     }
 }

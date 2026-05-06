@@ -73,12 +73,13 @@ public class ItemWriterRepository implements ItemRepository {
         return consItemId;
     }
 
-    public Item updateItemStatusAndLocation(Item item, String requestId) {
+
+    public Boolean updateItemStatusAndLocation(Item item, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] updateItemStatusAndLocation: itemId={}|id={}",
-                requestId, item.getItemId(), item.getId());
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] updateItemStatusAndLocation: item={}",
+                requestId, CommonUtils.convertToString(item));
 
         try {
             String sql = ItemQueryUtil.updateItemStatusAndLocationQuery();
@@ -87,7 +88,7 @@ public class ItemWriterRepository implements ItemRepository {
                     item.getStatus().name(),
                     item.getCurrentLocationCode(),
                     LocalDateTime.now(),
-                    "SYSTEM",
+                    item.getUpdatedBy(),
                     item.getId()
             );
 
@@ -102,6 +103,6 @@ public class ItemWriterRepository implements ItemRepository {
                     requestId, item.getId(), CommonUtils.getExecutionTime(startTime));
         }
 
-        return item;
+        return false;
     }
 }

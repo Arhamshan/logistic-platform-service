@@ -4,10 +4,9 @@ import com.logistic.common.entity.Consignment;
 import com.logistic.common.entity.Event;
 import com.logistic.common.entity.Item;
 import com.logistic.common.enums.ConsignmentStatus;
+import com.logistic.common.enums.EventType;
 import com.logistic.common.enums.ItemStatus;
-import com.logistic.platform.repository.writer.ConsignmentWriterRepository;
 import com.logistic.platform.repository.writer.EventWriterRepository;
-import com.logistic.platform.repository.writer.ItemWriterRepository;
 import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.service.EventService;
 import com.logistic.common.util.CommonUtils;
@@ -104,8 +103,6 @@ public class EventServiceImpl implements EventService {
             // 4. Set audit fields
             event.setCreatedDate(LocalDateTime.now());
             event.setUpdatedDate(LocalDateTime.now());
-            event.setCreatedBy("SYSTEM");
-            event.setUpdatedBy("SYSTEM");
 
             // 5. Save Event
             saveEvent(event, requestId);
@@ -134,7 +131,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private void updateItem(Item item, Event event, String requestId) {
-        item.setStatus(mapItemStatus(event.getEventType().name()));
+        item.setStatus(mapItemStatus(EventType.valueOf(event.getEventType().name())));
         item.setCurrentLocationCode(event.getEventLocationCode());
         item.setUpdatedDate(LocalDateTime.now());
 
@@ -142,30 +139,30 @@ public class EventServiceImpl implements EventService {
     }
 
     private void updateConsignment(Consignment consignment, Event event, String requestId) {
-        consignment.setStatus(mapConsignmentStatus(event.getEventType().name()));
+        consignment.setStatus(mapConsignmentStatus(EventType.valueOf(event.getEventType().name())));
         consignment.setUpdatedDate(LocalDateTime.now());
 
         consignmentService.updateStatus(consignment, requestId);
     }
 
-    private ItemStatus mapItemStatus(String eventType) {
+    private ItemStatus mapItemStatus(EventType eventType) {
         switch (eventType) {
-            case "PARCEL_BOOKED":            return ItemStatus.BOOKED;
-            case "PARCEL_PICKED_UP":         return ItemStatus.PICKED_UP;
-            case "PARCEL_IN_TRANSIT":        return ItemStatus.IN_TRANSIT;
-            case "PARCEL_OUT_FOR_DELIVERY":  return ItemStatus.OUT_FOR_DELIVERY;
-            case "PARCEL_DELIVERED":         return ItemStatus.DELIVERED;
+            case PARCEL_BOOKED:            return ItemStatus.BOOKED;
+            case PARCEL_PICKED_UP:         return ItemStatus.PICKED_UP;
+            case PARCEL_IN_TRANSIT:        return ItemStatus.IN_TRANSIT;
+            case PARCEL_OUT_FOR_DELIVERY:  return ItemStatus.OUT_FOR_DELIVERY;
+            case PARCEL_DELIVERED:         return ItemStatus.DELIVERED;
             default: throw new IllegalArgumentException("Unknown eventType: " + eventType);
         }
     }
 
-    private ConsignmentStatus mapConsignmentStatus(String eventType) {
+    private ConsignmentStatus mapConsignmentStatus(EventType eventType) {
         switch (eventType) {
-            case "PARCEL_BOOKED":            return ConsignmentStatus.BOOKED;
-            case "PARCEL_PICKED_UP":         return ConsignmentStatus.PICKED_UP;
-            case "PARCEL_IN_TRANSIT":        return ConsignmentStatus.IN_TRANSIT;
-            case "PARCEL_OUT_FOR_DELIVERY":  return ConsignmentStatus.OUT_FOR_DELIVERY;
-            case "PARCEL_DELIVERED":         return ConsignmentStatus.DELIVERED;
+            case PARCEL_BOOKED:            return ConsignmentStatus.BOOKED;
+            case PARCEL_PICKED_UP:         return ConsignmentStatus.PICKED_UP;
+            case PARCEL_IN_TRANSIT:        return ConsignmentStatus.IN_TRANSIT;
+            case PARCEL_OUT_FOR_DELIVERY:  return ConsignmentStatus.OUT_FOR_DELIVERY;
+            case PARCEL_DELIVERED:         return ConsignmentStatus.DELIVERED;
             default: throw new IllegalArgumentException("Unknown eventType: " + eventType);
         }
     }
