@@ -5,6 +5,7 @@ import com.logistic.common.entity.Consignment;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.dto.consignment.CreateConsignmentRequestDto;
 import com.logistic.platform.service.ConsignmentService;
+import com.logistic.platform.util.ConsignmentValidationUtil;
 import com.logistic.platform.vo.ItemProcessResultVo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,6 +42,15 @@ public class ConsignmentController {
 
         try {
             Consignment consignment = requestDto.getConsignment();
+
+            //  Validate consignment first
+            String validationError = ConsignmentValidationUtil.validate(requestDto);
+            if (validationError != null) {
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage(validationError);
+                response.setData(null);
+                return ResponseEntity.ok(response);
+            }
 
             List<ItemProcessResultVo> results = service.save(consignment, requestId);
 
