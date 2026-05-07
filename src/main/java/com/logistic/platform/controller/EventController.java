@@ -3,11 +3,14 @@ package com.logistic.platform.controller;
 import com.logistic.common.dto.ResponseDto;
 import com.logistic.common.entity.Consignment;
 import com.logistic.common.entity.Item;
+import com.logistic.common.entity.Location;
 import com.logistic.common.enums.EventType;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.common.entity.Event;
 import com.logistic.platform.dto.event.CreateEventRequestDto;
+import com.logistic.platform.repository.reader.LocationReaderRepository;
 import com.logistic.platform.service.EventService;
+import com.logistic.platform.service.LocationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -23,9 +26,12 @@ public class EventController {
     private static final Logger LOGGER = LoggerFactory.getLogger(EventController.class);
 
     private final EventService eventService;
+    private final LocationService locationService;
 
-    public EventController(EventService eventService) {
+    public EventController(EventService eventService,
+                           LocationService locationService) {
         this.eventService = eventService;
+        this.locationService = locationService;
     }
 
     @PostMapping
@@ -44,30 +50,41 @@ public class EventController {
 
         try {
 
-            Event event = new Event();
-            event.setEventType(EventType.valueOf(requestDto.getEventType()));
-            event.setEventLocationCode(requestDto.getLocationCode());
-            event.setDescription(requestDto.getDescription());
+            // Validate LocationCode
+            Location location = locationService.getLocationByCode(requestDto.getLocationCode(), requestId);
 
-            // item mapping
-            Item item = new Item();
-            item.setItemId(requestDto.getItemId());
+            if (location != null) {
 
-            // consignment id mapping
-            Consignment consignment = new Consignment();
-            consignment.setConsignmentId(requestDto.getConsignmentId());
+                Event event = new Event();
+                event.setEventType(EventType.valueOf(requestDto.getEventType()));
+                event.setEventLocationCode(requestDto.getLocationCode());
+                event.setDescription(requestDto.getDescription());
 
-            item.setConsignment(consignment);
-            event.setItem(item);
+                // item mapping
+                Item item = new Item();
+                item.setItemId(requestDto.getItemId());
 
-            eventService.createEvent(event, requestId);
+                // consignment id mapping
+                Consignment consignment = new Consignment();
+                consignment.setConsignmentId(requestDto.getConsignmentId());
 
-            response.setResponseCode(HttpStatus.OK.value());
-            response.setResponseMessage("Event created successfully");
-            response.setData(null);
+                item.setConsignment(consignment);
+                event.setItem(item);
 
-            LOGGER.info("END [REST-LAYER] [RequestId={}] createEvent: timeTaken={}",
-                    requestId, CommonUtils.getExecutionTime(startTime));
+                eventService.createEvent(event, requestId);
+
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Event created successfully");
+                response.setData(null);
+
+                LOGGER.info("END [REST-LAYER] [RequestId={}] createEvent: timeTaken={}",
+                        requestId, CommonUtils.getExecutionTime(startTime));
+            } else {
+
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Invalid locationCode");
+                response.setData(null);
+            }
 
         } catch (IllegalArgumentException e) {
 
