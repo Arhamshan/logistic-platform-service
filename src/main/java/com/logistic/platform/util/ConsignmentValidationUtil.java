@@ -19,7 +19,7 @@ public class ConsignmentValidationUtil {
 
         for (int i = 0; i < dto.getItems().size(); i++) {
             ItemDto item = dto.getItems().get(i);
-            String itemError = validateItem(item, i + 1);
+            String itemError = validateItem(item);
             if (itemError != null)
                 return itemError;
         }
@@ -70,20 +70,20 @@ public class ConsignmentValidationUtil {
         return null;
     }
 
-    private static String validateItem(ItemDto item, int index) {
+    private static String validateItem(ItemDto item) {
 
         if (item == null)
-            return "Invalid item at position " + index;
+            return "Invalid item ";
 
         String itemId = item.getItemId();
 
         // If ID is missing, report it using the position so it can be found
         if (isBlank(itemId)) {
-            return "Missing itemId at position " + index;
+            return "Missing itemId ";
         }
 
         // From here on, use only the Item ID
-        String errorPrefix = "Invalid %s for itemId: " + itemId;
+        String errorPrefix = "Invalid %s for item " + itemId;
 
         if (item.getHeight() == null) {
             return String.format(errorPrefix, "height");

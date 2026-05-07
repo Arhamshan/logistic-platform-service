@@ -85,8 +85,8 @@ public class EventServiceImpl implements EventService {
 
             // 2. Fetch & validate item + consignment relationship
             Item item = itemService.getItemByConsignmentIdAndItemId(
-                    itemId,
-                    consignmentId,
+                    event.getItem().getConsignment().getConsignmentId(),
+                    event.getItem().getItemId(),
                     requestId
             );
 
