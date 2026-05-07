@@ -84,18 +84,18 @@ public class ItemServiceImpl implements ItemService {
 
 
     @Override
-    public Item getItemByConsignmentIdAndItemId(String itemId, String consignmentId, String requestId) {
+    public Item getItemByConsignmentIdAndItemId(String consignmentId, String itemId, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemByConsignmentIdAndItemId: itemId={}|consignmentId={}",
-                requestId, itemId, consignmentId);
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemByConsignmentIdAndItemId: consignmentId={}|itemId={}",
+                requestId, consignmentId, itemId);
 
         Item item = null;
 
         try {
 
-            item = itemReaderRepository.findByConsignmentIdAndItemId(itemId, consignmentId, requestId)
+            item = itemReaderRepository.findByConsignmentIdAndItemId(consignmentId, itemId, requestId)
                     .orElseThrow(() ->
                             new IllegalArgumentException("Item not found: " + itemId));
 

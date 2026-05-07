@@ -10,7 +10,7 @@ public interface ItemService {
     // Save item
     Boolean save(Item item, String requestId);
 
-    Item getItemByConsignmentIdAndItemId(String itemId, String consignmentId, String requestId);
+    Item getItemByConsignmentIdAndItemId(String consignmentId, String itemId, String requestId);
 
     void updateStatusAndLocation(Item item, String requestId);
 }

@@ -28,14 +28,14 @@ public class ItemReaderRepository implements ItemRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public Optional<Item> findByConsignmentIdAndItemId(String itemId,
-                                       String consignmentId,
+    public Optional<Item> findByConsignmentIdAndItemId(String consignmentId,
+                                       String itemId,
                                        String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findByItemId: itemId={}|consignmentId={}",
-                requestId, itemId, consignmentId);
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findByItemId: consignmentId={}|itemId={}",
+                requestId, consignmentId, itemId);
 
         List<Item> result = null;
 
