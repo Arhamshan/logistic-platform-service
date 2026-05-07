@@ -2,6 +2,7 @@ package com.logistic.platform.util;
 
 import com.logistic.platform.dto.ContactDto;
 import com.logistic.platform.dto.consignment.CreateConsignmentRequestDto;
+import com.logistic.platform.dto.consignment.ItemDto;
 
 public class ConsignmentValidationUtil {
 
@@ -14,7 +15,14 @@ public class ConsignmentValidationUtil {
             return "Invalid locationCode";
 
         if (dto.getItems() == null || dto.getItems().isEmpty())
-            return "Invalid items";
+            return "Item is required";
+
+        for (int i = 0; i < dto.getItems().size(); i++) {
+            ItemDto item = dto.getItems().get(i);
+            String itemError = validateItem(item, i + 1);
+            if (itemError != null)
+                return itemError;
+        }
 
         if (dto.getSender() == null)
             return "Invalid sender";
@@ -58,6 +66,29 @@ public class ConsignmentValidationUtil {
 
         if (isBlank(contact.getCountry()))
             return "Invalid " + prefix + " country";
+
+        return null;
+    }
+
+    private static String validateItem(ItemDto item, int index) {
+
+        if (item == null)
+            return "Invalid item at position " + index;
+
+        if (isBlank(item.getItemId()))
+            return "Invalid itemId at position " + index;
+
+        if (item.getHeight() == null)
+            return "Invalid height at position " + index;
+
+        if (item.getWeight() == null)
+            return "Invalid weight at position " + index;
+
+        if (item.getWidth() == null)
+            return "Invalid width at position " + index;
+
+        if (item.getLength() == null)
+            return "Invalid length at position " + index;
 
         return null;
     }
