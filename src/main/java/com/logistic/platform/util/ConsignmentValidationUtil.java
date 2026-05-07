@@ -75,20 +75,31 @@ public class ConsignmentValidationUtil {
         if (item == null)
             return "Invalid item at position " + index;
 
-        if (isBlank(item.getItemId()))
-            return "Invalid itemId at position " + index;
+        String itemId = item.getItemId();
 
-        if (item.getHeight() == null)
-            return "Invalid height at position " + index;
+        // If ID is missing, report it using the position so it can be found
+        if (isBlank(itemId)) {
+            return "Missing itemId at position " + index;
+        }
 
-        if (item.getWeight() == null)
-            return "Invalid weight at position " + index;
+        // From here on, use only the Item ID
+        String errorPrefix = "Invalid %s for itemId: " + itemId;
 
-        if (item.getWidth() == null)
-            return "Invalid width at position " + index;
+        if (item.getHeight() == null) {
+            return String.format(errorPrefix, "height");
+        }
 
-        if (item.getLength() == null)
-            return "Invalid length at position " + index;
+        if (item.getWeight() == null) {
+            return String.format(errorPrefix, "weight");
+        }
+
+        if (item.getWidth() == null) {
+            return String.format(errorPrefix, "width");
+        }
+
+        if (item.getLength() == null) {
+            return String.format(errorPrefix, "length");
+        }
 
         return null;
     }
