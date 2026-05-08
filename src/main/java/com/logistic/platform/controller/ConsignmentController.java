@@ -52,6 +52,17 @@ public class ConsignmentController {
                 return ResponseEntity.ok(response);
             }
 
+            // Check for duplicate consignmentId #96
+            boolean exists = service.existsByConsignmentId(
+                    requestDto.getConsignmentId(), requestId);
+
+            if (exists) {
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Duplicate consignmentId");
+                response.setData(null);
+                return ResponseEntity.ok(response);
+            }
+
             List<ItemProcessResultVo> results = service.save(consignment, requestId);
 
             if (results != null && !results.isEmpty() && results.get(0).getItemId() == null && results.get(0).getStatusCode() == 400) {
