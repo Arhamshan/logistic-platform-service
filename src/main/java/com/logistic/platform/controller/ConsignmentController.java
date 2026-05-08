@@ -45,39 +45,40 @@ public class ConsignmentController {
 
             //  Validate consignment first
             String validationError = ConsignmentValidationUtil.validate(requestDto);
+
             if (validationError != null) {
                 response.setResponseCode(HttpStatus.OK.value());
                 response.setResponseMessage(validationError);
                 response.setData(null);
-                return ResponseEntity.ok(response);
-            }
-
-            // Check for duplicate consignmentId #96
-            boolean exists = service.existsByConsignmentId(
-                    requestDto.getConsignmentId(), requestId);
-
-            if (exists) {
-                response.setResponseCode(HttpStatus.OK.value());
-                response.setResponseMessage("Duplicate consignmentId");
-                response.setData(null);
-                return ResponseEntity.ok(response);
-            }
-
-            List<ItemProcessResultVo> results = service.save(consignment, requestId);
-
-            if (results != null && !results.isEmpty() && results.get(0).getItemId() == null && results.get(0).getStatusCode() == 400) {
-                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
-                response.setResponseMessage(results.get(0).getMessage()); // Location not found for the locationCode
-                response.setData(null);
-
-            } else if (results == null || results.isEmpty()) {
-                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
-                response.setResponseMessage("Failed to create consignment.");
 
             } else {
-                response.setResponseCode(HttpStatus.OK.value());
-                response.setResponseMessage("Consignment created successfully.");
-                response.setData(results);
+                // Check for duplicate consignmentId #96
+                boolean exists = service.existsByConsignmentId(
+                        requestDto.getConsignmentId(), requestId);
+
+                if (exists) {
+                    response.setResponseCode(HttpStatus.OK.value());
+                    response.setResponseMessage("Duplicate consignmentId");
+                    response.setData(null);
+
+                } else {
+                    List<ItemProcessResultVo> results = service.save(consignment, requestId);
+
+                    if (results != null && !results.isEmpty() && results.get(0).getItemId() == null && results.get(0).getStatusCode() == 400) {
+                        response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                        response.setResponseMessage(results.get(0).getMessage()); // Location not found for the locationCode
+                        response.setData(null);
+
+                    } else if (results == null || results.isEmpty()) {
+                        response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                        response.setResponseMessage("Failed to create consignment.");
+
+                    } else {
+                        response.setResponseCode(HttpStatus.OK.value());
+                        response.setResponseMessage("Consignment created successfully.");
+                        response.setData(results);
+                    }
+                }
             }
 
         } catch (Exception e) {
