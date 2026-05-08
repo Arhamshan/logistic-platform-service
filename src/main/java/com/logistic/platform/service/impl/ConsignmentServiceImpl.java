@@ -164,4 +164,30 @@ public class ConsignmentServiceImpl implements ConsignmentService {
         }
     }
 
+    // Validation for unique consignment #96
+    @Override
+    public Boolean existsByConsignmentId(String consignmentId, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] existsByConsignmentId: consignmentId={}",
+                requestId, consignmentId);
+
+        boolean exists = false;
+
+        try {
+            exists = readerRepository.findByConsignmentId(consignmentId, requestId).isPresent();
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] existsByConsignmentId: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] existsByConsignmentId: exists={}|timeTaken={}",
+                    requestId, exists, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return exists;
+    }
 }

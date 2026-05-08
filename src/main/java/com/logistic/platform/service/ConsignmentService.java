@@ -12,4 +12,5 @@ public interface ConsignmentService {
 
     void updateStatus(Consignment consignment, String requestId);
 
+    Boolean existsByConsignmentId(String consignmentId, String requestId);
 }

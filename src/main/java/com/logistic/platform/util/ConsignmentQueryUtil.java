@@ -42,4 +42,14 @@ public class ConsignmentQueryUtil {
         return query.toString();
     }
 
+    public static String findByConsignmentIdQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT ");
+        query.append("     id, ");
+        query.append("     consignment_id ");
+        query.append(" FROM \"Consignments\" ");
+        query.append(" WHERE consignment_id = ? ");
+
+        return query.toString();
+    }
 }
