@@ -9,11 +9,13 @@ import com.logistic.platform.repository.writer.ItemWriterRepository;
 import com.logistic.platform.service.EventService;
 import com.logistic.platform.service.ItemService;
 import com.logistic.platform.util.ConsignmentUtil;
+import com.logistic.platform.vo.TrackingItemVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -140,5 +142,43 @@ public class ItemServiceImpl implements ItemService {
             LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateStatusAndLocation: itemId={}|timeTaken={}",
                     requestId, item.getItemId(), CommonUtils.getExecutionTime(startTime));
         }
+    }
+
+    // Item tracing for consignment #97
+    @Override
+    public List<TrackingItemVo> getTrackingItems(String consignmentId, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getTrackingItems: consignmentId={}",
+                requestId, consignmentId);
+
+        List<TrackingItemVo> result = new ArrayList<>();
+
+        try {
+            List<Item> items = itemReaderRepository.findItemsByConsignmentId(consignmentId, requestId);
+
+            if (items != null) {
+                for (Item item : items) {
+                    TrackingItemVo itemVo = new TrackingItemVo();
+                    itemVo.setItemId(item.getItemId());
+                    itemVo.setStatus(item.getStatus().name());
+                    itemVo.setCurrentLocationCode(item.getCurrentLocationCode());
+                    itemVo.setTracking(eventService.getTrackingEvents(item.getId(), requestId));
+                    result.add(itemVo);
+                }
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getTrackingItems: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getTrackingItems: count={}|timeTaken={}",
+                    requestId, result.size(), CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
     }
 }

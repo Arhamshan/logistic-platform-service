@@ -7,6 +7,7 @@ import com.logistic.platform.dto.consignment.CreateConsignmentRequestDto;
 import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.util.ConsignmentValidationUtil;
 import com.logistic.platform.vo.ItemProcessResultVo;
+import com.logistic.platform.vo.TrackingConsignmentVo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -91,6 +92,49 @@ public class ConsignmentController {
         } finally {
             response.setTimestamp(LocalDateTime.now());
             LOGGER.info("END [REST-LAYER] [RequestId={}] createLocation: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/track/{consignmentId}")
+    public ResponseEntity<ResponseDto<List<TrackingConsignmentVo>>> trackConsignment(
+            @PathVariable("consignmentId") String consignmentId,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] trackConsignment: consignmentId={}",
+                requestId, consignmentId);
+
+        ResponseDto<List<TrackingConsignmentVo>> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            TrackingConsignmentVo tracking = service.getTrackingByConsignmentId(consignmentId, requestId);
+
+            if (tracking == null) {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Tracking not found for the consignment " + consignmentId);
+                response.setData(null);
+
+            } else {
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Consignment tracking fetched successfully.");
+                response.setData(List.of(tracking));
+            }
+
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to get tracking");
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] trackConsignment: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] trackConsignment: response={}|timeTaken={}",
                     requestId, response, CommonUtils.getExecutionTime(startTime));
         }
 

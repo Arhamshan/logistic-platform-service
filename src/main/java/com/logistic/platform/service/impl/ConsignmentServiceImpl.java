@@ -13,6 +13,9 @@ import com.logistic.platform.service.ContactService;
 import com.logistic.platform.service.ItemService;
 import com.logistic.platform.service.LocationService;
 import com.logistic.platform.vo.ItemProcessResultVo;
+import com.logistic.platform.vo.TrackingConsignmentVo;
+import com.logistic.platform.vo.TrackingItemVo;
+import com.logistic.platform.vo.TrackingLocationVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ConsignmentServiceImpl implements ConsignmentService {
@@ -189,5 +193,59 @@ public class ConsignmentServiceImpl implements ConsignmentService {
         }
 
         return exists;
+    }
+
+    @Override
+    public TrackingConsignmentVo getTrackingByConsignmentId(String consignmentId, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getTrackingByConsignmentId: consignmentId={}",
+                requestId, consignmentId);
+
+        TrackingConsignmentVo result = null;
+
+        try {
+            Optional<Consignment> consignmentOpt = readerRepository.findTrackingByConsignmentId(consignmentId, requestId);
+
+            if (consignmentOpt.isEmpty()) {
+                return null;
+            }
+
+            Consignment consignment = consignmentOpt.get();
+
+            result = new TrackingConsignmentVo();
+            result.setConsignmentId(consignment.getConsignmentId());
+            result.setStatus(consignment.getStatus().name());
+
+            // item Tracking part
+            List<TrackingItemVo> trackingItems = itemService.getTrackingItems(consignmentId, requestId);
+
+            // Resolve current_location for each item
+            for (TrackingItemVo itemVo : trackingItems) {
+                Location location = locationService.getLocationByCode(itemVo.getCurrentLocationCode(), requestId);
+                if (location != null) {
+                    itemVo.setCurrentLocation(
+                            new TrackingLocationVo(
+                                    location.getName(),
+                                    location.getType().name()
+                            )
+                    );
+                }
+            }
+
+            result.setItems(trackingItems);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getTrackingByConsignmentId: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getTrackingByConsignmentId: result={}|timeTaken={}",
+                    requestId, CommonUtils.convertToString(result), CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
     }
 }

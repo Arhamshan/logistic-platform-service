@@ -63,4 +63,19 @@ public class ItemQueryUtil {
 
         return query.toString();
     }
+
+    public static String findItemsByConsignmentIdQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT ");
+        query.append("     i.id, ");
+        query.append("     i.item_id, ");
+        query.append("     i.status, ");
+        query.append("     i.current_location_code ");
+        query.append(" FROM dev.\"Items\" i ");
+        query.append(" INNER JOIN dev.\"Consignments\" c ");
+        query.append("     ON i.cons_id = c.id ");
+        query.append(" WHERE c.consignment_id = ? ");
+
+        return query.toString();
+    }
 }

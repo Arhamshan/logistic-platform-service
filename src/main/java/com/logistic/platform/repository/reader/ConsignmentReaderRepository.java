@@ -65,4 +65,39 @@ public class ConsignmentReaderRepository implements ConsignmentRepository {
 
         return result.stream().findFirst();
     }
+
+    public Optional<Consignment> findTrackingByConsignmentId(String consignmentId, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findTrackingByConsignmentId: consignmentId={}",
+                requestId, consignmentId);
+
+        List<Consignment> result = null;
+
+        try {
+            String sql = ConsignmentQueryUtil.findTrackingByConsignmentIdQuery();
+
+            result = jdbcTemplate.query(sql, new Object[]{consignmentId},
+                    (rs, rowNum) -> {
+                        Consignment consignment = new Consignment();
+                        consignment.setConsignmentId(rs.getString("consignment_id"));
+                        consignment.setStatus(ConsignmentStatus.valueOf(rs.getString("status")));
+                        return consignment;
+                    });
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findTrackingByConsignmentId: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to fetch consignment tracking", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findTrackingByConsignmentId: found={}|timeTaken={}",
+                    requestId,
+                    result != null && !result.isEmpty(),
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result.stream().findFirst();
+    }
 }

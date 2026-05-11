@@ -2,6 +2,7 @@ package com.logistic.platform.repository;
 
 
 import com.logistic.common.entity.Consignment;
+import com.logistic.platform.vo.TrackingConsignmentVo;
 
 import java.util.Optional;
 
@@ -15,4 +16,7 @@ public interface ConsignmentRepository {
         return null;
     };
 
+    public default Optional<Consignment> findTrackingByConsignmentId(String consignmentId, String requestId){
+        return null;
+    };
 }
