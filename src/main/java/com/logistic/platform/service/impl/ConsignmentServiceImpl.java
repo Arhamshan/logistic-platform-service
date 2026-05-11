@@ -196,7 +196,7 @@ public class ConsignmentServiceImpl implements ConsignmentService {
     }
 
     @Override
-    public TrackingConsignmentVo getTrackingByConsignmentId(String consignmentId, String requestId) {
+    public TrackingConsignmentVo getByConsignmentId(String consignmentId, String requestId) {
 
         long startTime = System.currentTimeMillis();
 

@@ -46,6 +46,7 @@ public class ConsignmentReaderRepository implements ConsignmentRepository {
                             Consignment consignment = new Consignment();
                             consignment.setId(rs.getLong("id"));
                             consignment.setConsignmentId(rs.getString("consignment_id"));
+                            consignment.setStatus(ConsignmentStatus.valueOf(rs.getString("status")));
                             return consignment;
                         }
                     });
@@ -76,7 +77,7 @@ public class ConsignmentReaderRepository implements ConsignmentRepository {
         List<Consignment> result = null;
 
         try {
-            String sql = ConsignmentQueryUtil.findTrackingByConsignmentIdQuery();
+            String sql = ConsignmentQueryUtil.findByConsignmentIdQuery();
 
             result = jdbcTemplate.query(sql, new Object[]{consignmentId},
                     (rs, rowNum) -> {

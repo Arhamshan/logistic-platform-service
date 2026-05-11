@@ -46,16 +46,6 @@ public class ConsignmentQueryUtil {
         StringBuilder query = new StringBuilder();
         query.append(" SELECT ");
         query.append("     id, ");
-        query.append("     consignment_id ");
-        query.append(" FROM \"Consignments\" ");
-        query.append(" WHERE consignment_id = ? ");
-
-        return query.toString();
-    }
-
-    public static String findTrackingByConsignmentIdQuery() {
-        StringBuilder query = new StringBuilder();
-        query.append(" SELECT ");
         query.append("     consignment_id, ");
         query.append("     status ");
         query.append(" FROM \"Consignments\" ");
@@ -63,4 +53,5 @@ public class ConsignmentQueryUtil {
 
         return query.toString();
     }
+
 }

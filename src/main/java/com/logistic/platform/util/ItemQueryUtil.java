@@ -71,8 +71,8 @@ public class ItemQueryUtil {
         query.append("     i.item_id, ");
         query.append("     i.status, ");
         query.append("     i.current_location_code ");
-        query.append(" FROM dev.\"Items\" i ");
-        query.append(" INNER JOIN dev.\"Consignments\" c ");
+        query.append(" FROM \"Items\" i ");
+        query.append(" INNER JOIN \"Consignments\" c ");
         query.append("     ON i.cons_id = c.id ");
         query.append(" WHERE c.consignment_id = ? ");
 

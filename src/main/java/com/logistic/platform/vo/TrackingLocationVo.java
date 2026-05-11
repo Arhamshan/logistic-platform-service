@@ -1,7 +1,11 @@
 package com.logistic.platform.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
 public class TrackingLocationVo {
 
     @JsonProperty("name")
@@ -10,16 +14,8 @@ public class TrackingLocationVo {
     @JsonProperty("type")
     private String type;
 
-    public TrackingLocationVo() {}
-
-    public TrackingLocationVo(String name, String type) {
+    public TrackingLocationVo(String name, String name1) {
         this.name = name;
-        this.type = type;
+        this.type = name1;
     }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
 }

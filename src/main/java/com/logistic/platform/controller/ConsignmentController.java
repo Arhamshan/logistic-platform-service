@@ -112,7 +112,7 @@ public class ConsignmentController {
         response.setRequestId(requestId);
 
         try {
-            TrackingConsignmentVo tracking = service.getTrackingByConsignmentId(consignmentId, requestId);
+            TrackingConsignmentVo tracking = service.getByConsignmentId(consignmentId, requestId);
 
             if (tracking == null) {
                 response.setResponseCode(HttpStatus.BAD_REQUEST.value());

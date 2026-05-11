@@ -15,5 +15,5 @@ public interface ConsignmentService {
 
     Boolean existsByConsignmentId(String consignmentId, String requestId);
 
-    TrackingConsignmentVo getTrackingByConsignmentId(String consignmentId, String requestId);
+    TrackingConsignmentVo getByConsignmentId(String consignmentId, String requestId);
 }
