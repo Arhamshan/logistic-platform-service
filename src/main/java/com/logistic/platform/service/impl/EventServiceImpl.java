@@ -4,12 +4,14 @@ import com.logistic.common.entity.Consignment;
 import com.logistic.common.entity.Event;
 import com.logistic.common.entity.Item;
 import com.logistic.common.enums.EventType;
+import com.logistic.platform.repository.reader.EventReaderRepository;
 import com.logistic.platform.repository.writer.EventWriterRepository;
 import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.service.EventService;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.service.ItemService;
 import com.logistic.platform.util.ConsignmentUtil;
+import com.logistic.platform.vo.TrackingEventVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -26,12 +29,15 @@ public class EventServiceImpl implements EventService {
     private final EventWriterRepository eventWriterRepository;
     private final ItemService itemService;
     private final ConsignmentService consignmentService;
+    private final EventReaderRepository eventReaderRepository;
 
     public EventServiceImpl(EventWriterRepository eventWriterRepository,
-                            @Lazy ItemService itemService, @Lazy ConsignmentService consignmentService) {  // @Lazy breaks the cycle
+                            @Lazy ItemService itemService, @Lazy ConsignmentService consignmentService,
+                            EventReaderRepository eventReaderRepository) {  // @Lazy breaks the cycle
         this.eventWriterRepository = eventWriterRepository;
         this.itemService = itemService;
         this.consignmentService = consignmentService;
+        this.eventReaderRepository = eventReaderRepository;
     }
 
     @Override
@@ -145,5 +151,33 @@ public class EventServiceImpl implements EventService {
         consignmentService.updateStatus(consignment, requestId);
     }
 
+    // event tracking #97
+    @Override
+    public List<TrackingEventVo> getTrackingEvents(Long itemId, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getTrackingEvents: itemId={}",
+                requestId, itemId);
+
+        List<TrackingEventVo> result = null;
+
+        try {
+            result = eventReaderRepository.findTrackingEventsByItemId(itemId, requestId);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getTrackingEvents: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getTrackingEvents: count={}|timeTaken={}",
+                    requestId,
+                    result != null ? result.size() : 0,
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
+    }
 
     }

@@ -78,4 +78,42 @@ public class ItemReaderRepository implements ItemRepository {
 
         return result.stream().findFirst();
     }
+
+    // item tracing for consignment #97
+    public List<Item> findItemsByConsignmentId(String consignmentId, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findItemsByConsignmentId: consignmentId={}",
+                requestId, consignmentId);
+
+        List<Item> result = null;
+
+        try {
+            String sql = ItemQueryUtil.findItemsByConsignmentIdQuery();
+
+            result = jdbcTemplate.query(sql, new Object[]{consignmentId},
+                    (rs, rowNum) -> {
+                        Item item = new Item();
+                        item.setId(rs.getLong("id"));
+                        item.setItemId(rs.getString("item_id"));
+                        item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+                        item.setCurrentLocationCode(rs.getString("current_location_code"));
+                        return item;
+                    });
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findItemsByConsignmentId: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to fetch items for consignment", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findItemsByConsignmentId: count={}|timeTaken={}",
+                    requestId,
+                    result != null ? result.size() : 0,
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
+    }
 }

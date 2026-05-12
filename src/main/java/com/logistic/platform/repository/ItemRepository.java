@@ -3,6 +3,7 @@ package com.logistic.platform.repository;
 
 import com.logistic.common.entity.Item;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ItemRepository {
@@ -18,5 +19,9 @@ public interface ItemRepository {
     public default Boolean updateItemStatusAndLocation(Item item, String requestId){
         return false;
     };
+
+    public default List<Item> findItemsByConsignmentId(String consignmentId, String requestId){
+        return null;
+    }
 
 }
