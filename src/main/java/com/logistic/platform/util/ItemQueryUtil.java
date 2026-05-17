@@ -26,4 +26,56 @@ public class ItemQueryUtil {
         return query.toString();
     }
 
+
+    public static String updateItemStatusAndLocationQuery() {
+        StringBuilder query = new StringBuilder();
+
+        query.append(" UPDATE \"Items\" ");
+        query.append(" SET status = ?, ");
+        query.append("     current_location_code = ?, ");
+        query.append("     updated_date = ?, ");
+        query.append("     updated_by = ? ");
+        query.append(" WHERE id = ? ");
+
+        return query.toString();
+    }
+
+    public static String findByItemIdAndConsignmentIdQuery() {
+        StringBuilder query = new StringBuilder();
+
+        query.append(" SELECT ");
+        query.append("     i.id, ");
+        query.append("     i.item_id, ");
+        query.append("     i.cons_id, ");
+        query.append("     i.status, ");
+        query.append("     i.current_location_code, ");
+        query.append("     i.created_date, ");
+        query.append("     i.created_by, ");
+        query.append("     i.updated_date, ");
+        query.append("     i.updated_by, ");
+        query.append("     c.id  AS consignment_pk, ");
+        query.append("     c.consignment_id ");
+        query.append(" FROM dev.\"Items\" i ");
+        query.append(" INNER JOIN dev.\"Consignments\" c ");
+        query.append("     ON i.cons_id = c.id ");
+        query.append(" WHERE i.item_id = ? ");
+        query.append(" AND c.consignment_id = ? ");
+
+        return query.toString();
+    }
+
+    public static String findItemsByConsignmentIdQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT ");
+        query.append("     i.id, ");
+        query.append("     i.item_id, ");
+        query.append("     i.status, ");
+        query.append("     i.current_location_code ");
+        query.append(" FROM \"Items\" i ");
+        query.append(" INNER JOIN \"Consignments\" c ");
+        query.append("     ON i.cons_id = c.id ");
+        query.append(" WHERE c.consignment_id = ? ");
+
+        return query.toString();
+    }
 }

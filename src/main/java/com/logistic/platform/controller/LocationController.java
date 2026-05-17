@@ -82,7 +82,7 @@ public class LocationController {
 
     @GetMapping
     public ResponseEntity<ResponseDto<List<GetAllLocationResponseDto>>> getAllLocations(
-            @RequestHeader("requestId") String requestId) {
+            @RequestParam("requestId") String requestId) {
 
         long startTime = System.currentTimeMillis();
 

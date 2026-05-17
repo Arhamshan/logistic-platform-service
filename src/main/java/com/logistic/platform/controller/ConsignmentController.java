@@ -2,14 +2,12 @@ package com.logistic.platform.controller;
 
 import com.logistic.common.dto.ResponseDto;
 import com.logistic.common.entity.Consignment;
-import com.logistic.common.entity.Location;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.dto.consignment.CreateConsignmentRequestDto;
-import com.logistic.platform.dto.consignment.CreateConsignmentResponseDto;
-import com.logistic.platform.dto.location.LocationRequestDto;
-import com.logistic.platform.dto.location.LocationResponseDto;
 import com.logistic.platform.service.ConsignmentService;
-import com.logistic.platform.vo.ItemProcessResult;
+import com.logistic.platform.util.ConsignmentValidationUtil;
+import com.logistic.platform.vo.ItemProcessResultVo;
+import com.logistic.platform.vo.TrackingConsignmentVo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -32,7 +30,7 @@ public class ConsignmentController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseDto<List<ItemProcessResult>>> createConsignment(
+    public ResponseEntity<ResponseDto<List<ItemProcessResultVo>>> createConsignment(
             @RequestBody CreateConsignmentRequestDto requestDto,
             @RequestParam("requestId") String requestId) {
 
@@ -40,24 +38,48 @@ public class ConsignmentController {
 
         LOGGER.info("START [REST-LAYER] [RequestId={}] createLocation: ", requestId);
 
-        ResponseDto<List<ItemProcessResult>> response = new ResponseDto<>();
+        ResponseDto<List<ItemProcessResultVo>> response = new ResponseDto<>();
         response.setRequestId(requestId);
 
         try {
             Consignment consignment = requestDto.getConsignment();
 
-            System.out.println("consignment :: " + CommonUtils.convertToString(consignment));
+            //  Validate consignment first
+            String validationError = ConsignmentValidationUtil.validate(requestDto);
 
-            List<ItemProcessResult> results = service.save(consignment, requestId);
-
-            if (results == null || results.isEmpty()) {
-                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
-                response.setResponseMessage("Failed to create consignment.");
+            if (validationError != null) {
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage(validationError);
+                response.setData(null);
 
             } else {
-                response.setResponseCode(HttpStatus.OK.value());
-                response.setResponseMessage("Consignment created successfully.");
-                response.setData(results);
+                // Check for duplicate consignmentId #96
+                boolean exists = service.existsByConsignmentId(
+                        requestDto.getConsignmentId(), requestId);
+
+                if (exists) {
+                    response.setResponseCode(HttpStatus.OK.value());
+                    response.setResponseMessage("Duplicate consignmentId");
+                    response.setData(null);
+
+                } else {
+                    List<ItemProcessResultVo> results = service.save(consignment, requestId);
+
+                    if (results != null && !results.isEmpty() && results.get(0).getItemId() == null && results.get(0).getStatusCode() == 400) {
+                        response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                        response.setResponseMessage(results.get(0).getMessage()); // Location not found for the locationCode
+                        response.setData(null);
+
+                    } else if (results == null || results.isEmpty()) {
+                        response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                        response.setResponseMessage("Failed to create consignment.");
+
+                    } else {
+                        response.setResponseCode(HttpStatus.OK.value());
+                        response.setResponseMessage("Consignment created successfully.");
+                        response.setData(results);
+                    }
+                }
             }
 
         } catch (Exception e) {
@@ -70,6 +92,49 @@ public class ConsignmentController {
         } finally {
             response.setTimestamp(LocalDateTime.now());
             LOGGER.info("END [REST-LAYER] [RequestId={}] createLocation: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/track/{consignmentId}")
+    public ResponseEntity<ResponseDto<List<TrackingConsignmentVo>>> trackConsignment(
+            @PathVariable("consignmentId") String consignmentId,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] trackConsignment: consignmentId={}",
+                requestId, consignmentId);
+
+        ResponseDto<List<TrackingConsignmentVo>> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            TrackingConsignmentVo tracking = service.getByConsignmentId(consignmentId, requestId);
+
+            if (tracking == null) {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Tracking not found for the consignment " + consignmentId);
+                response.setData(null);
+
+            } else {
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Consignment tracking fetched successfully.");
+                response.setData(List.of(tracking));
+            }
+
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to get tracking");
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] trackConsignment: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] trackConsignment: response={}|timeTaken={}",
                     requestId, response, CommonUtils.getExecutionTime(startTime));
         }
 

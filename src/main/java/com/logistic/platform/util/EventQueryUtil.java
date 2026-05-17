@@ -26,23 +26,6 @@ public class EventQueryUtil {
         return query.toString();
     }
 
-    public static String findEventByIdQuery() {
-        StringBuilder query = new StringBuilder();
-        query.append(" SELECT ");
-        query.append("     e.id, ");
-        query.append("     e.cons_item_id, ");
-        query.append("     e.event_type, ");
-        query.append("     e.event_location_code, ");
-        query.append("     e.description, ");
-        query.append("     e.created_date, ");
-        query.append("     e.created_by, ");
-        query.append("     e.updated_date, ");
-        query.append("     e.updated_by ");
-        query.append(" FROM \"Events\" e ");
-        query.append(" WHERE e.id = ? ");
-        return query.toString();
-    }
-
     public static String findEventsByItemIdQuery() {
         StringBuilder query = new StringBuilder();
         query.append(" SELECT ");
@@ -58,6 +41,22 @@ public class EventQueryUtil {
         query.append(" FROM \"Events\" e ");
         query.append(" WHERE e.cons_item_id = ? ");
         query.append(" ORDER BY e.created_date DESC ");
+        return query.toString();
+    }
+
+    public static String findTrackingEventsByItemIdQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT ");
+        query.append("     e.event_type, ");
+        query.append("     e.description, ");
+        query.append("     e.created_date, ");
+        query.append("     l.name  AS location_name, ");
+        query.append("     l.type  AS location_type ");
+        query.append(" FROM \"Events\" e ");
+        query.append(" INNER JOIN \"Locations\" l ");
+        query.append("     ON e.event_location_code = l.location_code ");
+        query.append(" WHERE e.cons_item_id = ? ");
+        query.append(" ORDER BY e.created_date ASC ");
         return query.toString();
     }
 }

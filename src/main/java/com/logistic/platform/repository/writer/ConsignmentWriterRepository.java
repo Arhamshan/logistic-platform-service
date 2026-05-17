@@ -72,4 +72,39 @@ public class ConsignmentWriterRepository implements ConsignmentRepository {
 
         return consId;
     }
+
+    public Boolean updateStatus(Consignment consignment, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        // print full object
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] updateStatus: consignment={}",
+                requestId, CommonUtils.convertToString(consignment));
+
+        Boolean isUpdated = false;
+
+        try {
+            String sql = ConsignmentQueryUtil.updateConsignmentStatusQuery();
+
+            int rowsAffected = jdbcTemplate.update(sql,
+                    consignment.getStatus().name(),
+                    LocalDateTime.now(),
+                    consignment.getUpdatedBy(),
+                    consignment.getId()
+            );
+            isUpdated = rowsAffected >0;
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] updateStatus: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+            throw new RuntimeException("Failed to update consignment", e);
+        } finally {
+
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] updateStatus: id={}|timeTaken={}",
+                    requestId, consignment.getId(), CommonUtils.getExecutionTime(startTime));
+        }
+
+        return isUpdated;
+    }
 }
