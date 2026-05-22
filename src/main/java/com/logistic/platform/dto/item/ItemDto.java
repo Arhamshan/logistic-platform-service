@@ -1,4 +1,4 @@
-package com.logistic.platform.dto.consignment;
+package com.logistic.platform.dto.item;
 
 import com.logistic.common.entity.Item;
 import com.logistic.common.enums.ItemStatus;

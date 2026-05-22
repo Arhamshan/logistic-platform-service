@@ -5,6 +5,7 @@ import com.logistic.common.enums.ConsignmentStatus;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.repository.ConsignmentRepository;
 import com.logistic.platform.util.ConsignmentQueryUtil;
+import com.logistic.platform.vo.SummaryVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.RowMapper;
@@ -100,5 +101,46 @@ public class ConsignmentReaderRepository implements ConsignmentRepository {
         }
 
         return result.stream().findFirst();
+    }
+
+    public SummaryVo findSummary(String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findSummary", requestId);
+
+        SummaryVo result = null;
+
+        try {
+            String sql = ConsignmentQueryUtil.findSummaryQuery();
+
+            List<SummaryVo> rows = jdbcTemplate.query(sql,
+                    (rs, rowNum) -> {
+                        SummaryVo vo = new SummaryVo();
+                        vo.setTotalConsignments(rs.getLong("total_consignments"));
+                        vo.setBooked(rs.getLong("booked"));
+                        vo.setPickedUp(rs.getLong("picked_up"));
+                        vo.setInTransit(rs.getLong("in_transit"));
+                        vo.setOutForDelivery(rs.getLong("out_for_delivery"));
+                        vo.setDelivered(rs.getLong("delivered"));
+                        vo.setTodayBookings(rs.getLong("today_bookings"));
+                        return vo;
+                    });
+
+            if (rows != null && !rows.isEmpty()) {
+                result = rows.get(0);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findSummary: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to fetch summary", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findSummary: result={}|timeTaken={}",
+                    requestId, result, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
     }
 }

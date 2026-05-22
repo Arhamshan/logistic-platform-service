@@ -2,7 +2,7 @@ package com.logistic.platform.util;
 
 import com.logistic.platform.dto.ContactDto;
 import com.logistic.platform.dto.consignment.CreateConsignmentRequestDto;
-import com.logistic.platform.dto.consignment.ItemDto;
+import com.logistic.platform.dto.item.ItemDto;
 
 public class ConsignmentValidationUtil {
 
