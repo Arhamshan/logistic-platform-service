@@ -5,6 +5,7 @@ import com.logistic.common.entity.Contact;
 import com.logistic.common.entity.Item;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.platform.dto.ContactDto;
+import com.logistic.platform.dto.item.ItemDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
