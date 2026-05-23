@@ -3,6 +3,7 @@ package com.logistic.platform.service.impl;
 import com.logistic.common.entity.User;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.common.enums.Status;
+import com.logistic.platform.repository.reader.UserReaderRepository;
 import com.logistic.platform.repository.writer.UserWriterRepository;
 import com.logistic.platform.service.UserService;
 import org.apache.logging.log4j.LogManager;
@@ -10,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,11 +21,16 @@ public class UserServiceImpl implements UserService {
 
     private final UserWriterRepository writerRepository;
 
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final UserReaderRepository readerRepository;
 
-    public UserServiceImpl(UserWriterRepository writerRepository) {
+    private final PasswordEncoder passwordEncoder;
+
+    public UserServiceImpl(UserWriterRepository writerRepository,
+                           UserReaderRepository readerRepository,
+                           PasswordEncoder passwordEncoder) {
         this.writerRepository = writerRepository;
-        this.passwordEncoder = new BCryptPasswordEncoder();
+        this.passwordEncoder = passwordEncoder;
+        this.readerRepository = readerRepository;
     }
 
     @Override
@@ -33,7 +40,7 @@ public class UserServiceImpl implements UserService {
 
         LOGGER.info("START [SERVICE-LAYER] [RequestId={}] createUser", requestId);
 
-        Boolean isCreated = false;
+        boolean isCreated = false;
 
         try {
 
@@ -59,5 +66,34 @@ public class UserServiceImpl implements UserService {
         }
 
         return isCreated;
+    }
+
+    @Override
+    public User getByUsername(String username, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getByUsername", requestId);
+
+        User user = null;
+
+        try {
+
+            user = readerRepository.findByUsername(username, requestId);
+
+        } catch (Exception e) {
+
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getByUsername: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+            throw e;
+
+        } finally {
+
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getByUsername: timeTaken={}",
+                    requestId, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return user;
     }
 }

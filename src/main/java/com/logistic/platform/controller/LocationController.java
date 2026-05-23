@@ -13,9 +13,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @RestController
@@ -92,6 +96,9 @@ public class LocationController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.info("START [REST-LAYER] [RequestId={}] getAllLocations: usernameFromAuthHeader={}", requestId, auth.getName());
+
             // Service returns List<Location> (entities), not DTOs
             List<Location> locations = service.getAllLocations(requestId);
 

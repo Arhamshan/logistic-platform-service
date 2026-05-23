@@ -30,6 +30,7 @@ public class UserQueryUtil {
         query.append(" \"Users\" u ");
         query.append("WHERE ");
         query.append(" u.username = ? ");
+        query.append(" AND u.status = 'ACTIVE' ");
 
         return query.toString();
     }
