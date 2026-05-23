@@ -7,7 +7,9 @@ import com.logistic.platform.dto.consignment.CreateConsignmentRequestDto;
 import com.logistic.platform.dto.consignment.SummaryResponseDto;
 import com.logistic.platform.dto.consignment.TrackingConsignmentResponseDto;
 import com.logistic.platform.dto.item.ItemProcessDto;
+import com.logistic.platform.dto.pod.PodRequestDto;
 import com.logistic.platform.service.ConsignmentService;
+import com.logistic.platform.service.PodService;
 import com.logistic.platform.util.ConsignmentValidationUtil;
 import com.logistic.platform.vo.ItemProcessResultVo;
 import com.logistic.platform.vo.SummaryVo;
@@ -29,9 +31,11 @@ public class ConsignmentController {
     private static final Logger LOGGER = LogManager.getLogger(ConsignmentController.class);
 
     private final ConsignmentService service;
+    private final PodService podService;
 
-    public ConsignmentController(ConsignmentService service) {
+    public ConsignmentController(ConsignmentService service, PodService podService) {
         this.service = service;
+        this.podService = podService;
     }
 
     @PostMapping
@@ -190,6 +194,52 @@ public class ConsignmentController {
             response.setTimestamp(LocalDateTime.now());
 
             LOGGER.info("END [REST-LAYER] [RequestId={}] getSummary: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    // POD #99
+    @PostMapping("/{consignmentId}/pod")
+    public ResponseEntity<ResponseDto<Void>> savePod(
+            @PathVariable("consignmentId") String consignmentId,
+            @RequestParam("itemId") String itemId,
+            @RequestBody PodRequestDto requestDto,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] savePod: consignmentId={}|itemId={}",
+                requestId, consignmentId, itemId);
+
+        ResponseDto<Void> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            Boolean saved = podService.savePod(consignmentId, itemId, requestDto, requestId);
+
+            if (Boolean.FALSE.equals(saved)) {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Failed to save POD");
+                response.setData(null);
+
+            } else {
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("POD saved successfully");
+                response.setData(null);
+            }
+
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to save POD");
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] savePod: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] savePod: response={}|timeTaken={}",
                     requestId, response, CommonUtils.getExecutionTime(startTime));
         }
 
