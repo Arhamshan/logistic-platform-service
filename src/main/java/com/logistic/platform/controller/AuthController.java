@@ -1,6 +1,7 @@
 package com.logistic.platform.controller;
 
 import com.logistic.common.dto.ResponseDto;
+import com.logistic.common.entity.User;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.dto.auth.AuthResponseDto;
 import com.logistic.platform.dto.auth.LoginRequestDto;
@@ -44,33 +45,19 @@ public class AuthController {
 
         try {
 
-            AuthResponseDto login = authService.login(requestDto, requestId);
+            User user = authService.login(requestDto.getUsername(), requestDto.getPassword(), requestId);
 
-            response.setData(login);
-            response.setResponseCode(HttpStatus.OK.value());
-            response.setResponseMessage("Logged in successfully");
+            if (user != null) {
+                AuthResponseDto login = new AuthResponseDto(user.getToken(), user.getUsername(), user.getRole().name());
 
-            /*if (user.getUsername() == null || user.getPassword() == null || user.getRole() == null) {
-
-                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
-                response.setResponseMessage("Invalid request: username, password, and role are required");
-                response.setData(null);
+                response.setData(login);
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Logged in successfully");
 
             } else {
-
-                Boolean isCreated = userService.createUser(user, requestId);
-
-                if (Boolean.TRUE.equals(isCreated)) {
-
-                    response.setResponseCode(HttpStatus.OK.value());
-                    response.setResponseMessage("User created successfully");
-
-                } else {
-
-                    response.setResponseCode(HttpStatus.BAD_REQUEST.value());
-                    response.setResponseMessage("Failed to create user");
-                }
-            }*/
+                response.setResponseCode(HttpStatus.NOT_FOUND.value());
+                response.setResponseMessage("Login not found");
+            }
 
         } catch (Exception e) {
 

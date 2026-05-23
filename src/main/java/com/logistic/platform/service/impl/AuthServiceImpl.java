@@ -1,12 +1,7 @@
 package com.logistic.platform.service.impl;
 
 import com.logistic.common.entity.User;
-import com.logistic.common.enums.Status;
 import com.logistic.common.util.CommonUtils;
-import com.logistic.platform.dto.auth.AuthResponseDto;
-import com.logistic.platform.dto.auth.LoginRequestDto;
-import com.logistic.platform.repository.reader.UserReaderRepository;
-import com.logistic.platform.repository.writer.UserWriterRepository;
 import com.logistic.platform.service.AuthService;
 import com.logistic.platform.service.UserService;
 import com.logistic.platform.util.JwtUtil;
@@ -40,15 +35,20 @@ public class AuthServiceImpl implements AuthService {
     }
 
     // Login and return JWT
-    public AuthResponseDto login(LoginRequestDto request, String requestId) {
+    public User login(String username, String password, String requestId) {
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] login: username={}",
+                requestId, username);
+
         // This throws an exception if credentials are wrong
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getUsername(), request.getPassword()
+                        username, password
                 )
         );
 
-        User user = userService.getByUsername(request.getUsername(), requestId);
+        User user = userService.getByUsername(username, requestId);
 
         if (user == null) {
             throw new RuntimeException("User not found");
@@ -56,6 +56,11 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
 
-        return new AuthResponseDto(token, user.getUsername(), user.getRole().name());
+        user.setToken(token);
+
+        LOGGER.info("END [SERVICE-LAYER] [RequestId={}] login: timeTaken={}",
+                requestId, CommonUtils.getExecutionTime(startTime));
+
+        return user;
     }
 }
