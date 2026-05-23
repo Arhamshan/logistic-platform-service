@@ -32,7 +32,7 @@ public class TrackingItemResponseDto {
         this.currentLocation = vo.getCurrentLocation() != null
                 ? new LocationResponseDto(
                 vo.getCurrentLocation().getName(),
-                null)                               // locationCode not in TrackingLocationVo
+                vo.getCurrentLocationCode())
                 : null;
         this.tracking = vo.getTracking() != null
                 ? vo.getTracking().stream()

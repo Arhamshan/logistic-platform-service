@@ -225,7 +225,8 @@ public class ConsignmentServiceImpl implements ConsignmentService {
                     itemVo.setCurrentLocation(
                             new TrackingLocationVo(
                                     location.getName(),
-                                    location.getType().name()
+                                    location.getType().name(),
+                                    location.getLocationCode()
                             )
                     );
                 }

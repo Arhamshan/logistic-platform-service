@@ -14,8 +14,12 @@ public class TrackingLocationVo {
     @JsonProperty("type")
     private String type;
 
-    public TrackingLocationVo(String name, String name1) {
+    @JsonProperty("locationCode")
+    private String currentLocation;
+
+    public TrackingLocationVo(String name, String name1, String locationCode) {
         this.name = name;
         this.type = name1;
+        this.currentLocation = locationCode;
     }
 }

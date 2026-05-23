@@ -26,7 +26,7 @@ public class TrackingEventResponseDto {
         this.location = vo.getLocation() != null
                 ? new LocationResponseDto(
                 vo.getLocation().getName(),
-                null)                               // locationCode not in TrackingLocationVo
+                vo.getLocation().getCurrentLocation())
                 : null;
     }
 }

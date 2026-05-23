@@ -51,7 +51,8 @@ public class EventQueryUtil {
         query.append("     e.description, ");
         query.append("     e.created_date, ");
         query.append("     l.name  AS location_name, ");
-        query.append("     l.type  AS location_type ");
+        query.append("     l.type  AS location_type, ");
+        query.append("     l.location_code AS location_code ");
         query.append(" FROM \"Events\" e ");
         query.append(" INNER JOIN \"Locations\" l ");
         query.append("     ON e.event_location_code = l.location_code ");
