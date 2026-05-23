@@ -12,10 +12,7 @@ import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.service.ContactService;
 import com.logistic.platform.service.ItemService;
 import com.logistic.platform.service.LocationService;
-import com.logistic.platform.vo.ItemProcessResultVo;
-import com.logistic.platform.vo.TrackingConsignmentVo;
-import com.logistic.platform.vo.TrackingItemVo;
-import com.logistic.platform.vo.TrackingLocationVo;
+import com.logistic.platform.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -228,7 +225,8 @@ public class ConsignmentServiceImpl implements ConsignmentService {
                     itemVo.setCurrentLocation(
                             new TrackingLocationVo(
                                     location.getName(),
-                                    location.getType().name()
+                                    location.getType().name(),
+                                    location.getLocationCode()
                             )
                     );
                 }
@@ -244,6 +242,31 @@ public class ConsignmentServiceImpl implements ConsignmentService {
         } finally {
             LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getTrackingByConsignmentId: result={}|timeTaken={}",
                     requestId, CommonUtils.convertToString(result), CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
+    }
+
+    @Override
+    public SummaryVo getSummary(String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getSummary", requestId);
+
+        SummaryVo result = null;
+
+        try {
+            result = readerRepository.findSummary(requestId);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getSummary: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getSummary: result={}|timeTaken={}",
+                    requestId, result, CommonUtils.getExecutionTime(startTime));
         }
 
         return result;

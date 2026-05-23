@@ -2,6 +2,7 @@ package com.logistic.platform.service;
 
 import com.logistic.common.entity.Consignment;
 import com.logistic.platform.vo.ItemProcessResultVo;
+import com.logistic.platform.vo.SummaryVo;
 import com.logistic.platform.vo.TrackingConsignmentVo;
 
 import java.util.List;
@@ -16,4 +17,6 @@ public interface ConsignmentService {
     Boolean existsByConsignmentId(String consignmentId, String requestId);
 
     TrackingConsignmentVo getByConsignmentId(String consignmentId, String requestId);
+
+    SummaryVo getSummary(String requestId);
 }

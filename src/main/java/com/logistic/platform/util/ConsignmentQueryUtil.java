@@ -54,4 +54,19 @@ public class ConsignmentQueryUtil {
         return query.toString();
     }
 
+    public static String findSummaryQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT ");
+        query.append("     COUNT(*) AS total_consignments, ");
+        query.append("     COUNT(*) FILTER (WHERE status = 'BOOKED')  AS booked, ");
+        query.append("     COUNT(*) FILTER (WHERE status = 'PICKED_UP')   AS picked_up, ");
+        query.append("     COUNT(*) FILTER (WHERE status = 'IN_TRANSIT')  AS in_transit, ");
+        query.append("     COUNT(*) FILTER (WHERE status = 'OUT_FOR_DELIVERY')  AS out_for_delivery, ");
+        query.append("     COUNT(*) FILTER (WHERE status = 'DELIVERED') AS delivered, ");
+        query.append("     COUNT(*) FILTER (WHERE DATE(created_date) = CURRENT_DATE) AS today_bookings ");
+        query.append(" FROM \"Consignments\" ");
+
+        return query.toString();
+    }
+
 }
