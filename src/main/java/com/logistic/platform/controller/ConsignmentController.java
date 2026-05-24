@@ -2,6 +2,7 @@ package com.logistic.platform.controller;
 
 import com.logistic.common.dto.ResponseDto;
 import com.logistic.common.entity.Consignment;
+import com.logistic.common.entity.Pod;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.dto.consignment.CreateConsignmentRequestDto;
 import com.logistic.platform.dto.consignment.SummaryResponseDto;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -210,14 +212,29 @@ public class ConsignmentController {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REST-LAYER] [RequestId={}] savePod: consignmentId={}|itemId={}",
-                requestId, consignmentId, itemId);
+        LOGGER.info("START [REST-LAYER] [RequestId={}] savePod: consignmentId={}|itemId={}|requestDto={}",
+                requestId, consignmentId, itemId, CommonUtils.convertToString(requestDto));
 
         ResponseDto<Void> response = new ResponseDto<>();
         response.setRequestId(requestId);
 
         try {
-            Boolean saved = podService.savePod(consignmentId, itemId, requestDto, requestId);
+
+            Pod pod = new Pod();
+            pod.setReceivedBy(requestDto.getReceivedBy());
+            pod.setReceiverContact(requestDto.getReceiverContact());
+            pod.setRemarks(requestDto.getRemarks());
+            pod.setPodPath(requestDto.getPodImage());
+            pod.setDeliveredAt(requestDto.getReceivedAt() != null
+                    ? OffsetDateTime.parse(requestDto.getReceivedAt()).toLocalDateTime()
+                    : null);
+            pod.setDeliveredBy(null);
+            pod.setCreatedDate(LocalDateTime.now());
+            pod.setCreatedBy("SYSTEM");
+            pod.setUpdatedDate(LocalDateTime.now());
+            pod.setUpdatedBy("SYSTEM");
+
+            Boolean saved = podService.savePod(consignmentId, itemId, pod, requestId);
 
             if (Boolean.FALSE.equals(saved)) {
                 response.setResponseCode(HttpStatus.BAD_REQUEST.value());

@@ -1,7 +1,7 @@
 package com.logistic.platform.service;
 
-import com.logistic.platform.dto.pod.PodRequestDto;
+import com.logistic.common.entity.Pod;
 
 public interface PodService {
-    Boolean savePod(String consignmentId, String itemId, PodRequestDto requestDto, String requestId);
+    Boolean savePod(String consignmentId, String itemId, Pod pod, String requestId);
 }

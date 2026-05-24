@@ -3,16 +3,12 @@ package com.logistic.platform.service.impl;
 import com.logistic.common.entity.Item;
 import com.logistic.common.entity.Pod;
 import com.logistic.common.util.CommonUtils;
-import com.logistic.platform.dto.pod.PodRequestDto;
 import com.logistic.platform.repository.writer.PodWriterRepository;
 import com.logistic.platform.service.ItemService;
 import com.logistic.platform.service.PodService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 
 @Service
 public class PodServiceImpl implements PodService {
@@ -30,12 +26,12 @@ public class PodServiceImpl implements PodService {
 
     @Override
     public Boolean savePod(String consignmentId, String itemId,
-                           PodRequestDto requestDto, String requestId) {
+                           Pod pod, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] savePod: consignmentId={}|itemId={}",
-                requestId, consignmentId, itemId);
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] savePod: consignmentId={}|itemId={}|pod={}",
+                requestId, consignmentId, itemId, CommonUtils.convertToString(pod));
 
         Boolean result = Boolean.FALSE;
 
@@ -49,22 +45,6 @@ public class PodServiceImpl implements PodService {
                         requestId, consignmentId, itemId);
                 return Boolean.FALSE;
             }
-
-            // 2. Build Pod entity
-            Pod pod = new Pod();
-            pod.setItem(item);
-            pod.setReceivedBy(requestDto.getReceivedBy());
-            pod.setReceiverContact(requestDto.getReceiverContact());
-            pod.setRemarks(requestDto.getRemarks());
-            pod.setPodPath(requestDto.getPodImage());   // base64 → pod_path
-            pod.setDeliveredAt(requestDto.getReceivedAt() != null
-                    ? OffsetDateTime.parse(requestDto.getReceivedAt()).toLocalDateTime()
-                    : null);
-            pod.setDeliveredBy(null);                   // not in request for now
-            pod.setCreatedDate(LocalDateTime.now());
-            pod.setCreatedBy("SYSTEM");
-            pod.setUpdatedDate(LocalDateTime.now());
-            pod.setUpdatedBy("SYSTEM");
 
             // 3. Save
             Long savedId = podWriterRepository.save(pod, requestId);
