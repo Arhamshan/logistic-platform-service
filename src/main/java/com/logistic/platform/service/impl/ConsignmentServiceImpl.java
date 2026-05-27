@@ -22,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class ConsignmentServiceImpl implements ConsignmentService {
@@ -80,6 +83,23 @@ public class ConsignmentServiceImpl implements ConsignmentService {
                 ));
 
             } else {
+
+                // Validate no duplicate itemIds within the consignment
+                List<String> itemIds = consignment.getItems().stream()
+                        .map(Item::getItemId)
+                        .collect(Collectors.toList());
+
+                Set<String> uniqueItemIds = new HashSet<>(itemIds);
+
+                if (uniqueItemIds.size() != itemIds.size()) {
+                    results.add(new ItemProcessResultVo(
+                            null,
+                            consignment.getConsignmentId(),
+                            400,
+                            "Duplicate itemId found within the consignment"
+                    ));
+                }
+
                 Contact savedSenderContact = contactService.createContact(consignment.getSenderContact(), requestId);
                 if (savedSenderContact != null) {
                     consignment.getSenderContact().setId(savedSenderContact.getId());
