@@ -34,7 +34,7 @@ public class ItemReaderRepository implements ItemRepository {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findByItemId: consignmentId={}|itemId={}",
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findByConsignmentIdAndItemId: consignmentId={}|itemId={}",
                 requestId, consignmentId, itemId);
 
         List<Item> result = null;
@@ -65,12 +65,12 @@ public class ItemReaderRepository implements ItemRepository {
                     });
 
         } catch (Exception e) {
-            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findByItemId: Ex={}|Trace={}",
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findByConsignmentIdAndItemId: Ex={}|Trace={}",
                     requestId, e.getMessage(), e.getStackTrace());
             throw new RuntimeException("DB failure", e);
 
         } finally {
-            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findByItemId: found={}|timeTaken={}",
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findByConsignmentIdAndItemId: found={}|timeTaken={}",
                     requestId,
                     result != null && !result.isEmpty(),
                     CommonUtils.getExecutionTime(startTime));
@@ -115,5 +115,80 @@ public class ItemReaderRepository implements ItemRepository {
         }
 
         return result;
+    }
+
+    // Scanning items API #101
+    public String findLastBarcodeNumber(String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findLastBarcodeNumber", requestId);
+
+        List<String> result = null;
+        String lastBarcode = null;
+
+        try {
+            String sql = ItemQueryUtil.findLastBarcodeNumberQuery();
+
+            result = jdbcTemplate.query(sql, (rs, rowNum) ->
+                    rs.getString("barcode_number"));
+
+            if (result != null && !result.isEmpty()) {
+                lastBarcode = result.get(0);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findLastBarcodeNumber: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findLastBarcodeNumber: lastBarcode={}|timeTaken={}",
+                    requestId, lastBarcode, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return lastBarcode;
+    }
+
+    public Optional<Item> findByBarcodeNumber(String barcodeNumber, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findByBarcodeNumber: barcodeNumber={}",
+                requestId, barcodeNumber);
+
+        List<Item> result = null;
+
+        try {
+            String sql = ItemQueryUtil.findByBarcodeNumberQuery();
+
+            result = jdbcTemplate.query(sql, new Object[]{barcodeNumber},
+                    (rs, rowNum) -> {
+                        Consignment consignment = new Consignment();
+                        consignment.setId(rs.getLong("consignment_pk"));
+                        consignment.setConsignmentId(rs.getString("consignment_id"));
+
+                        Item item = new Item();
+                        item.setId(rs.getLong("id"));
+                        item.setItemId(rs.getString("item_id"));
+                        item.setBarcodeNumber(rs.getString("barcode_number"));
+                        item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+                        item.setCurrentLocationCode(rs.getString("current_location_code"));
+                        item.setConsignment(consignment);
+                        return item;
+                    });
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findByBarcodeNumber: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to fetch item by barcode", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findByBarcodeNumber: found={}|timeTaken={}",
+                    requestId,
+                    result != null && !result.isEmpty(),
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result.stream().findFirst();
     }
 }
