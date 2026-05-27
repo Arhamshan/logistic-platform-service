@@ -24,4 +24,8 @@ public interface ItemRepository {
         return null;
     }
 
+    public default String findLastBarcodeNumber(String requestId){
+        return null;
+    }
+
 }

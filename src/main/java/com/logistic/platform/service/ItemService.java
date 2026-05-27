@@ -16,4 +16,10 @@ public interface ItemService {
     void updateStatusAndLocation(Item item, String requestId);
 
     List<TrackingItemVo> getTrackingItems(String consignmentId, String requestId);
+
+    String generateBarcodeNumber(String lastBarcode,String requestId);
+
+    String getLastBarcodeNumber(String requestId);
+
+    Item getItemByBarcodeNumber(String barcodeNumber, String requestId);
 }

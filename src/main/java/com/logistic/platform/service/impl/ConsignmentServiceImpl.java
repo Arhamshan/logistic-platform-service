@@ -2,6 +2,7 @@ package com.logistic.platform.service.impl;
 
 import com.logistic.common.entity.Consignment;
 import com.logistic.common.entity.Contact;
+import com.logistic.common.entity.Item;
 import com.logistic.common.entity.Location;
 import com.logistic.common.enums.ConsignmentStatus;
 import com.logistic.common.enums.ItemStatus;
@@ -59,10 +60,9 @@ public class ConsignmentServiceImpl implements ConsignmentService {
         LOGGER.info("START [SERVICE-LAYER] [RequestId={}] save: consignment={}",
                 requestId, CommonUtils.convertToString(consignment));
 
-        List<ItemProcessResultVo> results = new ArrayList<>(  );
+        List<ItemProcessResultVo> results = new ArrayList<>();
 
         try {
-            //  location code validation
             String locationCode = null;
 
             if (!consignment.getItems().isEmpty()) {
@@ -70,6 +70,7 @@ public class ConsignmentServiceImpl implements ConsignmentService {
             }
 
             Location location = locationService.getLocationByCode(locationCode, requestId);
+
             if (location == null) {
                 results.add(new ItemProcessResultVo(
                         null,
@@ -79,30 +80,38 @@ public class ConsignmentServiceImpl implements ConsignmentService {
                 ));
 
             } else {
-                // save sender contact
                 Contact savedSenderContact = contactService.createContact(consignment.getSenderContact(), requestId);
-
                 if (savedSenderContact != null) {
                     consignment.getSenderContact().setId(savedSenderContact.getId());
                 }
 
-                // save destination contact
                 Contact savedDestinationContact = contactService.createContact(consignment.getDestinationContact(), requestId);
-
                 if (savedDestinationContact != null) {
                     consignment.getDestinationContact().setId(savedDestinationContact.getId());
                 }
 
                 consignment.setStatus(ConsignmentStatus.BOOKED);
 
-                // save consignment
                 Long consId = writerRepository.save(consignment, requestId);
                 consignment.setId(consId);
 
-                // save items and generate response
-                consignment.getItems().forEach(item -> {
+                // One DB read — get last barcode
+                String lastBarcode = itemService.getLastBarcodeNumber(requestId);
+
+                // Generate all barcodes in memory
+                List<String> barcodes = new ArrayList<>();
+                for (int i = 0; i < consignment.getItems().size(); i++) {
+                    String base = (i == 0) ? lastBarcode : barcodes.get(i - 1);
+                    String newBarcode = itemService.generateBarcodeNumber(base, requestId);
+                    barcodes.add(newBarcode);
+                }
+
+                // Save items with pre-generated barcodes
+                for (int i = 0; i < consignment.getItems().size(); i++) {
+                    Item item = consignment.getItems().get(i);
                     item.setConsignment(new Consignment(consignment.getId(), consignment.getConsignmentId()));
                     item.setStatus(ItemStatus.BOOKED);
+                    item.setBarcodeNumber(barcodes.get(i));
 
                     try {
                         Boolean isItemSaved = itemService.save(item, requestId);
@@ -123,7 +132,7 @@ public class ConsignmentServiceImpl implements ConsignmentService {
                                 "Failed to create item"
                         ));
                     }
-                });
+                }
             }
 
         } catch (Exception e) {

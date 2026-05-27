@@ -48,7 +48,6 @@ public class ItemServiceImpl implements ItemService {
         Boolean isItemSaved = Boolean.FALSE;
 
         try {
-
             Long itemConsId = writerRepository.save(item, requestId);
 
             if (itemConsId != null) {
@@ -180,5 +179,92 @@ public class ItemServiceImpl implements ItemService {
         }
 
         return result;
+    }
+
+    // Scan Items by Barcode Number #101
+    @Override
+    public String generateBarcodeNumber(String lastBarcode, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] generateBarcodeNumber", requestId);
+
+        String newBarcodeNumber = null;
+
+        try {
+            if (CommonUtils.isBlankString(lastBarcode)) {
+                newBarcodeNumber = "BRC_0000000001";
+
+            } else {
+                String prefix = lastBarcode.substring(0, 4);
+                int number = Integer.parseInt(lastBarcode.substring(4));
+                number++;
+                newBarcodeNumber = prefix + String.format("%010d", number);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] generateBarcodeNumber: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] generateBarcodeNumber: newBarcodeNumber={}|timeTaken={}",
+                    requestId, newBarcodeNumber, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return newBarcodeNumber;
+    }
+
+    @Override
+    public String getLastBarcodeNumber(String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getLastBarcodeNumber", requestId);
+
+        String lastBarcode = null;
+
+        try {
+            lastBarcode = itemReaderRepository.findLastBarcodeNumber(requestId);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getLastBarcodeNumber: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getLastBarcodeNumber: lastBarcode={}|timeTaken={}",
+                    requestId, lastBarcode, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return lastBarcode;
+    }
+
+    @Override
+    public Item getItemByBarcodeNumber(String barcodeNumber, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemByBarcodeNumber: barcodeNumber={}",
+                requestId, barcodeNumber);
+
+        Item item = null;
+
+        try {
+            item = itemReaderRepository.findByBarcodeNumber(barcodeNumber, requestId)
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("Item not found for barcode: " + barcodeNumber));
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getItemByBarcodeNumber: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getItemByBarcodeNumber: barcodeNumber={}|timeTaken={}",
+                    requestId, barcodeNumber, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return item;
     }
 }

@@ -48,12 +48,17 @@ public class ItemWriterRepository implements ItemRepository {
                 ps.setLong(2, item.getConsignment().getId());
                 ps.setString(3, String.valueOf(item.getStatus()));
                 ps.setString(4, item.getCurrentLocationCode());
-                ps.setTimestamp(5, Timestamp.valueOf(item.getCreatedDate() != null ?
+                ps.setString(5, item.getBarcodeNumber());
+                ps.setObject(6, item.getWeight());
+                ps.setObject(7, item.getHeight());
+                ps.setObject(8, item.getLength());
+                ps.setObject(9, item.getWidth());
+                ps.setTimestamp(10, Timestamp.valueOf(item.getCreatedDate() != null ?
                         item.getCreatedDate() : LocalDateTime.now()));
-                ps.setString(6, item.getCreatedBy());
-                ps.setTimestamp(7, Timestamp.valueOf(item.getUpdatedDate() != null ?
+                ps.setString(11, item.getCreatedBy());
+                ps.setTimestamp(12, Timestamp.valueOf(item.getUpdatedDate() != null ?
                         item.getUpdatedDate() : LocalDateTime.now()));
-                ps.setString(8, item.getUpdatedBy());
+                ps.setString(13, item.getUpdatedBy());
 
                 return ps;
             }, keyHolder);
