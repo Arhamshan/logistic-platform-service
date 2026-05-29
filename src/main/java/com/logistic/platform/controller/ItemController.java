@@ -100,12 +100,14 @@ public class ItemController {
         try {
             // 1. Update item status and location — returns item with consignment attached
             Item item = itemService.updateStatusAndLocationById(id, status, locationCode, requestId);
+            item.setUpdatedBy("SYSTEM");
 
             // 2. Update consignment status
             EventType eventType = EventType.valueOf(status);
             Consignment consignment = item.getConsignment();
             consignment.setStatus(ConsignmentUtil.mapConsignmentStatus(eventType));
             consignment.setUpdatedDate(LocalDateTime.now());
+            consignment.setUpdatedBy("SYSTEM");
             consignmentService.updateStatus(consignment, requestId);
 
             // 3. Save event
@@ -115,6 +117,7 @@ public class ItemController {
             event.setEventLocationCode(locationCode);
             event.setDescription(eventType.name());
             event.setCreatedBy("SYSTEM");
+            event.setUpdatedBy("SYSTEM");
             eventService.saveEvent(event, requestId);
 
             response.setResponseCode(HttpStatus.OK.value());
