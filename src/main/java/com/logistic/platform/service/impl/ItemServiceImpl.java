@@ -267,4 +267,32 @@ public class ItemServiceImpl implements ItemService {
 
         return item;
     }
+
+    @Override
+    public Item getItemById(Long id, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemById: id={}",
+                requestId, id);
+
+        Item item = null;
+
+        try {
+            item = itemReaderRepository.findById(id, requestId)
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("Item not found for id: " + id));
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getItemById: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getItemById: id={}|timeTaken={}",
+                    requestId, id, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return item;
+    }
 }

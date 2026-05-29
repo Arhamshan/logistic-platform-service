@@ -76,4 +76,54 @@ public class ItemController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{status}/{id}")
+    public ResponseEntity<ResponseDto<Void>> statusUpdate(
+            @PathVariable("status") String status,
+            @PathVariable("id") Long id,
+            @RequestParam("locationCode") String locationCode,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] statusUpdate: status={}|id={}|locationCode={}",
+                requestId, status, id, locationCode);
+
+        ResponseDto<Void> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            // 1. Fetch item by PK
+            Item item = itemService.getItemById(id, requestId);
+
+            // 2. Build event
+            Event event = new Event();
+            event.setItem(item);
+            event.setEventType(EventType.valueOf(status));
+            event.setEventLocationCode(locationCode);
+            event.setDescription(EventType.valueOf(status).name());
+            event.setCreatedBy("SYSTEM");
+
+            // 3. createEvent → updates item, consignment, saves event
+            eventService.createEvent(event, requestId);
+
+            response.setResponseCode(HttpStatus.OK.value());
+            response.setResponseMessage("Status updated successfully");
+            response.setData(null);
+
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Error in updating status");
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] statusUpdate: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] statusUpdate: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
+    }
 }

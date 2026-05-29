@@ -22,4 +22,6 @@ public interface ItemService {
     String getLastBarcodeNumber(String requestId);
 
     Item getItemByBarcodeNumber(String barcodeNumber, String requestId);
+
+    Item getItemById(Long id, String requestId);
 }

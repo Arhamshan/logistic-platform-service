@@ -28,4 +28,8 @@ public interface ItemRepository {
         return null;
     }
 
+    public default Optional<Item> findById(Long id, String requestId){
+        return Optional.empty();
+    }
+
 }
