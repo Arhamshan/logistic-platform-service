@@ -23,5 +23,5 @@ public interface ItemService {
 
     Item getItemByBarcodeNumber(String barcodeNumber, String requestId);
 
-    Item getItemById(Long id, String requestId);
+    Item updateStatusAndLocationById(Long id, String status, String locationCode, String requestId);
 }

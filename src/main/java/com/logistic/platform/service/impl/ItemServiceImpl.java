@@ -1,7 +1,9 @@
 package com.logistic.platform.service.impl;
 
+import com.logistic.common.entity.Consignment;
 import com.logistic.common.entity.Event;
 import com.logistic.common.entity.Item;
+import com.logistic.common.enums.EventType;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.repository.reader.ItemReaderRepository;
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -269,28 +272,38 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Item getItemById(Long id, String requestId) {
+    @Transactional
+    public Item updateStatusAndLocationById(Long id, String status, String locationCode, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemById: id={}",
-                requestId, id);
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateStatusAndLocationById: id={}|status={}|locationCode={}",
+                requestId, id, status, locationCode);
 
         Item item = null;
 
         try {
+            // 1. Fetch item by PK
             item = itemReaderRepository.findById(id, requestId)
-                    .orElseThrow(() ->
-                            new IllegalArgumentException("Item not found for id: " + id));
+                    .orElseThrow(() -> new IllegalArgumentException("Item not found for id: " + id));
+
+            // 2. Map EventType → ItemStatus
+            EventType eventType = EventType.valueOf(status);
+            item.setStatus(ConsignmentUtil.mapItemStatus(eventType));
+            item.setCurrentLocationCode(locationCode);
+            item.setUpdatedDate(LocalDateTime.now());
+
+            // 3. Update item
+            writerRepository.updateItemStatusAndLocation(item, requestId);
 
         } catch (Exception e) {
-            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getItemById: Ex={}|Trace={}",
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateStatusAndLocationById: Ex={}|Trace={}",
                     requestId, e.getMessage(), e.getStackTrace());
             throw e;
 
         } finally {
-            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getItemById: id={}|timeTaken={}",
-                    requestId, id, CommonUtils.getExecutionTime(startTime));
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateStatusAndLocationById: timeTaken={}",
+                    requestId, CommonUtils.getExecutionTime(startTime));
         }
 
         return item;
