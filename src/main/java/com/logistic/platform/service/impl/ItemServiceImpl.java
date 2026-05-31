@@ -8,12 +8,14 @@ import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.repository.reader.ItemReaderRepository;
 import com.logistic.platform.repository.writer.ItemWriterRepository;
+import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.service.EventService;
 import com.logistic.platform.service.ItemService;
 import com.logistic.platform.util.ConsignmentUtil;
 import com.logistic.platform.vo.TrackingItemVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,11 +34,15 @@ public class ItemServiceImpl implements ItemService {
 
     private final EventService eventService;
 
+    private final ConsignmentService consignmentService;
 
-    public ItemServiceImpl(ItemWriterRepository writerRepository, ItemReaderRepository itemReaderRepository, EventService eventService) {
+
+    public ItemServiceImpl(ItemWriterRepository writerRepository, ItemReaderRepository itemReaderRepository,
+                           EventService eventService, @Lazy ConsignmentService consignmentService) {
         this.writerRepository = writerRepository;
         this.itemReaderRepository = itemReaderRepository;
         this.eventService = eventService;
+        this.consignmentService = consignmentService;
     }
 
     @Override
@@ -273,13 +279,14 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public Item updateStatusAndLocationById(Long id, String status, String locationCode, String requestId) {
+    public Boolean updateStatus(Long id, String status, String locationCode, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
         LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateStatusAndLocationById: id={}|status={}|locationCode={}",
                 requestId, id, status, locationCode);
 
+        Boolean isUpdated = Boolean.FALSE;
         Item item = null;
 
         try {
@@ -289,12 +296,38 @@ public class ItemServiceImpl implements ItemService {
 
             // 2. Map EventType → ItemStatus
             EventType eventType = EventType.valueOf(status);
+
             item.setStatus(ConsignmentUtil.mapItemStatus(eventType));
             item.setCurrentLocationCode(locationCode);
             item.setUpdatedDate(LocalDateTime.now());
+            item.setUpdatedBy("SYSTEM");
 
             // 3. Update item
             writerRepository.updateItemStatusAndLocation(item, requestId);
+
+            // 4. Update consignment status
+            Consignment consignment = item.getConsignment();
+
+            if (consignment != null) {
+                consignment.setStatus(ConsignmentUtil.mapConsignmentStatus(eventType));
+                consignment.setUpdatedDate(LocalDateTime.now());
+                consignment.setUpdatedBy("SYSTEM");
+
+                consignmentService.updateStatus(consignment, requestId);
+            }
+
+            // 5. Save event
+            Event event = new Event();
+            event.setItem(item);
+            event.setEventType(eventType);
+            event.setEventLocationCode(locationCode);
+            event.setDescription(eventType.name());
+            event.setCreatedBy("SYSTEM");
+            event.setUpdatedBy("SYSTEM");
+
+            eventService.saveEvent(event, requestId);
+
+            isUpdated = Boolean.TRUE;
 
         } catch (Exception e) {
             LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateStatusAndLocationById: Ex={}|Trace={}",
@@ -302,10 +335,10 @@ public class ItemServiceImpl implements ItemService {
             throw e;
 
         } finally {
-            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateStatusAndLocationById: timeTaken={}",
-                    requestId, CommonUtils.getExecutionTime(startTime));
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateStatusAndLocationById: isUpdated={}|timeTaken={}",
+                    requestId, isUpdated, CommonUtils.getExecutionTime(startTime));
         }
 
-        return item;
+        return isUpdated;
     }
 }

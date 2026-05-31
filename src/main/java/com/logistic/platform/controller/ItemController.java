@@ -98,30 +98,19 @@ public class ItemController {
         response.setRequestId(requestId);
 
         try {
-            // 1. Update item status and location — returns item with consignment attached
-            Item item = itemService.updateStatusAndLocationById(id, status, locationCode, requestId);
-            item.setUpdatedBy("SYSTEM");
+            Boolean isUpdated = itemService.updateStatus(id, status, locationCode, requestId);
 
-            // 2. Update consignment status
-            EventType eventType = EventType.valueOf(status);
-            Consignment consignment = item.getConsignment();
-            consignment.setStatus(ConsignmentUtil.mapConsignmentStatus(eventType));
-            consignment.setUpdatedDate(LocalDateTime.now());
-            consignment.setUpdatedBy("SYSTEM");
-            consignmentService.updateStatus(consignment, requestId);
+            if (Boolean.TRUE.equals(isUpdated)) {
 
-            // 3. Save event
-            Event event = new Event();
-            event.setItem(item);
-            event.setEventType(eventType);
-            event.setEventLocationCode(locationCode);
-            event.setDescription(eventType.name());
-            event.setCreatedBy("SYSTEM");
-            event.setUpdatedBy("SYSTEM");
-            eventService.saveEvent(event, requestId);
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Status updated successfully");
 
-            response.setResponseCode(HttpStatus.OK.value());
-            response.setResponseMessage("Status updated successfully");
+            } else {
+
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Failed to update status");
+            }
+
             response.setData(null);
 
         } catch (Exception e) {
