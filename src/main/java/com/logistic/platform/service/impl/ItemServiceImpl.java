@@ -286,7 +286,7 @@ public class ItemServiceImpl implements ItemService {
         LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateStatus: id={}|status={}|locationCode={}",
                 requestId, id, status, locationCode);
 
-        Boolean isUpdated = Boolean.FALSE;
+        Boolean isItemUpdated = Boolean.FALSE;
         Item item = null;
 
         try {
@@ -295,7 +295,7 @@ public class ItemServiceImpl implements ItemService {
                     .orElseThrow(() -> new IllegalArgumentException("Item not found for id: " + id));
 
             // 2. Map EventType → ItemStatus
-            EventType eventType = EventType.valueOf(ConsignmentUtil.getEventTypeByItemStatus(ItemStatus.valueOf(status)).name());
+            EventType eventType = ConsignmentUtil.getEventTypeByItemStatus(ItemStatus.valueOf(status));
 
             item.setStatus(ConsignmentUtil.mapItemStatus(eventType));
             item.setCurrentLocationCode(locationCode);
@@ -303,7 +303,7 @@ public class ItemServiceImpl implements ItemService {
             item.setUpdatedBy("SYSTEM");
 
             // 3. Update item
-            Boolean isItemUpdated = writerRepository.updateItemStatusAndLocation(item, requestId);
+            isItemUpdated = writerRepository.updateItemStatusAndLocation(item, requestId);
 
             if (isItemUpdated) {
                 // 4. Update consignment status
@@ -328,8 +328,8 @@ public class ItemServiceImpl implements ItemService {
 
                 eventService.saveEvent(event, requestId);
 
-                isUpdated = Boolean.TRUE;
             }
+
 
         } catch (Exception e) {
             LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateStatus: Ex={}|Trace={}",
@@ -338,9 +338,9 @@ public class ItemServiceImpl implements ItemService {
 
         } finally {
             LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateStatus: isUpdated={}|timeTaken={}",
-                    requestId, isUpdated, CommonUtils.getExecutionTime(startTime));
+                    requestId, isItemUpdated, CommonUtils.getExecutionTime(startTime));
         }
 
-        return isUpdated;
+        return isItemUpdated;
     }
 }

@@ -52,7 +52,6 @@ public class ItemController {
             // 2. Build event
             Event event = new Event();
             event.setItem(item);
-            event.setEventType(EventType.valueOf(requestDto.getStatus()));
             event.setEventType(ConsignmentUtil.getEventTypeByItemStatus(ItemStatus.valueOf(requestDto.getStatus())));
             event.setEventLocationCode(requestDto.getLocationCode());
             event.setCreatedBy(requestDto.getScannedBy());
