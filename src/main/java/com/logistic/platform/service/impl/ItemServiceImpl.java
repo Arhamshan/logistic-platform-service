@@ -283,7 +283,7 @@ public class ItemServiceImpl implements ItemService {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateStatusAndLocationById: id={}|status={}|locationCode={}",
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateStatus: id={}|status={}|locationCode={}",
                 requestId, id, status, locationCode);
 
         Boolean isUpdated = Boolean.FALSE;
@@ -295,7 +295,7 @@ public class ItemServiceImpl implements ItemService {
                     .orElseThrow(() -> new IllegalArgumentException("Item not found for id: " + id));
 
             // 2. Map EventType → ItemStatus
-            EventType eventType = EventType.valueOf(status);
+            EventType eventType = EventType.valueOf(ConsignmentUtil.getEventTypeByItemStatus(ItemStatus.valueOf(status)).name());
 
             item.setStatus(ConsignmentUtil.mapItemStatus(eventType));
             item.setCurrentLocationCode(locationCode);
@@ -303,39 +303,39 @@ public class ItemServiceImpl implements ItemService {
             item.setUpdatedBy("SYSTEM");
 
             // 3. Update item
-            writerRepository.updateItemStatusAndLocation(item, requestId);
+            Boolean isItemUpdated = writerRepository.updateItemStatusAndLocation(item, requestId);
 
-            // 4. Update consignment status
-            Consignment consignment = item.getConsignment();
+            if (isItemUpdated) {
+                // 4. Update consignment status
+                Consignment consignment = item.getConsignment();
 
-            if (consignment != null) {
-                consignment.setStatus(ConsignmentUtil.mapConsignmentStatus(eventType));
-                consignment.setUpdatedDate(LocalDateTime.now());
-                consignment.setUpdatedBy("SYSTEM");
+                if (consignment != null) {
+                    consignment.setStatus(ConsignmentUtil.mapConsignmentStatus(eventType));
+                    consignment.setUpdatedDate(LocalDateTime.now());
+                    consignment.setUpdatedBy("SYSTEM");
 
-                consignmentService.updateStatus(consignment, requestId);
+                    consignmentService.updateStatus(consignment, requestId);
+                }
+
+                // 5. Save event
+                Event event = new Event();
+                event.setItem(item);
+                event.setEventType(eventType);
+                event.setEventLocationCode(locationCode);
+                event.setDescription(eventType.name());
+                event.setCreatedBy("SYSTEM");
+                event.setUpdatedBy("SYSTEM");
+
+                eventService.saveEvent(event, requestId);
             }
 
-            // 5. Save event
-            Event event = new Event();
-            event.setItem(item);
-            event.setEventType(eventType);
-            event.setEventLocationCode(locationCode);
-            event.setDescription(eventType.name());
-            event.setCreatedBy("SYSTEM");
-            event.setUpdatedBy("SYSTEM");
-
-            eventService.saveEvent(event, requestId);
-
-            isUpdated = Boolean.TRUE;
-
         } catch (Exception e) {
-            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateStatusAndLocationById: Ex={}|Trace={}",
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateStatus: Ex={}|Trace={}",
                     requestId, e.getMessage(), e.getStackTrace());
             throw e;
 
         } finally {
-            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateStatusAndLocationById: isUpdated={}|timeTaken={}",
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateStatus: isUpdated={}|timeTaken={}",
                     requestId, isUpdated, CommonUtils.getExecutionTime(startTime));
         }
 
