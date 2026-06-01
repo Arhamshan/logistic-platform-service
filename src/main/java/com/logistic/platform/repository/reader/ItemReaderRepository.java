@@ -231,6 +231,8 @@ public class ItemReaderRepository implements ItemRepository {
                     CommonUtils.getExecutionTime(startTime));
         }
 
-        return result.stream().findFirst();
+        return (result != null && !result.isEmpty())
+                ? Optional.of(result.get(0))
+                : Optional.empty();
     }
 }

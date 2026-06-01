@@ -327,6 +327,8 @@ public class ItemServiceImpl implements ItemService {
                 event.setUpdatedBy("SYSTEM");
 
                 eventService.saveEvent(event, requestId);
+
+                isUpdated = Boolean.TRUE;
             }
 
         } catch (Exception e) {
