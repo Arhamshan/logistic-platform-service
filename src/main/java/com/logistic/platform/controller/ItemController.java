@@ -6,10 +6,10 @@ import com.logistic.common.entity.Item;
 import com.logistic.common.enums.EventType;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.platform.util.ConsignmentUtil;
 import com.logistic.platform.dto.item.ScanItemRequestDto;
 import com.logistic.platform.service.EventService;
 import com.logistic.platform.service.ItemService;
-import com.logistic.platform.util.ConsignmentUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -52,7 +52,6 @@ public class ItemController {
             // 2. Build event
             Event event = new Event();
             event.setItem(item);
-            event.setEventType(EventType.valueOf(requestDto.getStatus()));
             event.setEventType(ConsignmentUtil.getEventTypeByItemStatus(ItemStatus.valueOf(requestDto.getStatus())));
             event.setEventLocationCode(requestDto.getLocationCode());
             event.setCreatedBy(requestDto.getScannedBy());
@@ -74,6 +73,53 @@ public class ItemController {
         } finally {
             response.setTimestamp(LocalDateTime.now());
             LOGGER.info("END [REST-LAYER] [RequestId={}] scanItem: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{status}/{id}")
+    public ResponseEntity<ResponseDto<Void>> updateStatus(
+            @PathVariable("status") String status,
+            @PathVariable("id") Long id,
+            @RequestParam("locationCode") String locationCode,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] updateStatus: status={}|id={}|locationCode={}",
+                requestId, status, id, locationCode);
+
+        ResponseDto<Void> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            Boolean isUpdated = itemService.updateStatus(id, status, locationCode, requestId);
+
+            if (Boolean.TRUE.equals(isUpdated)) {
+
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Status updated successfully");
+
+            } else {
+
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Failed to update status");
+            }
+
+            response.setData(null);
+
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Error in updating status");
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] updateStatus: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] updateStatus: response={}|timeTaken={}",
                     requestId, response, CommonUtils.getExecutionTime(startTime));
         }
 

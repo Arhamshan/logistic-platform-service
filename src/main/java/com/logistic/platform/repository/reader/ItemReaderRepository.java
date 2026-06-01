@@ -191,4 +191,48 @@ public class ItemReaderRepository implements ItemRepository {
 
         return result.stream().findFirst();
     }
+
+    public Optional<Item> findById(Long id, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findById: id={}",
+                requestId, id);
+
+        List<Item> result = null;
+
+        try {
+            String sql = ItemQueryUtil.findByIdQuery();
+
+            result = jdbcTemplate.query(sql, new Object[]{id},
+                    (rs, rowNum) -> {
+                        Consignment consignment = new Consignment();
+                        consignment.setId(rs.getLong("consignment_pk"));
+                        consignment.setConsignmentId(rs.getString("consignment_id"));
+
+                        Item item = new Item();
+                        item.setId(rs.getLong("id"));
+                        item.setItemId(rs.getString("item_id"));
+                        item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+                        item.setCurrentLocationCode(rs.getString("current_location_code"));
+                        item.setConsignment(consignment);
+                        return item;
+                    });
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findById: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to fetch item by id", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findById: found={}|timeTaken={}",
+                    requestId,
+                    result != null && !result.isEmpty(),
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return (result != null && !result.isEmpty())
+                ? Optional.of(result.get(0))
+                : Optional.empty();
+    }
 }

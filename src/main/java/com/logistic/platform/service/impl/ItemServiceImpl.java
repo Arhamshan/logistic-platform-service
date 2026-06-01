@@ -1,20 +1,25 @@
 package com.logistic.platform.service.impl;
 
+import com.logistic.common.entity.Consignment;
 import com.logistic.common.entity.Event;
 import com.logistic.common.entity.Item;
+import com.logistic.common.enums.EventType;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.repository.reader.ItemReaderRepository;
 import com.logistic.platform.repository.writer.ItemWriterRepository;
+import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.service.EventService;
 import com.logistic.platform.service.ItemService;
 import com.logistic.platform.util.ConsignmentUtil;
 import com.logistic.platform.vo.TrackingItemVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,11 +34,15 @@ public class ItemServiceImpl implements ItemService {
 
     private final EventService eventService;
 
+    private final ConsignmentService consignmentService;
 
-    public ItemServiceImpl(ItemWriterRepository writerRepository, ItemReaderRepository itemReaderRepository, EventService eventService) {
+
+    public ItemServiceImpl(ItemWriterRepository writerRepository, ItemReaderRepository itemReaderRepository,
+                           EventService eventService, @Lazy ConsignmentService consignmentService) {
         this.writerRepository = writerRepository;
         this.itemReaderRepository = itemReaderRepository;
         this.eventService = eventService;
+        this.consignmentService = consignmentService;
     }
 
     @Override
@@ -266,5 +275,72 @@ public class ItemServiceImpl implements ItemService {
         }
 
         return item;
+    }
+
+    @Override
+    @Transactional
+    public Boolean updateStatus(Long id, String status, String locationCode, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateStatus: id={}|status={}|locationCode={}",
+                requestId, id, status, locationCode);
+
+        Boolean isItemUpdated = Boolean.FALSE;
+        Item item = null;
+
+        try {
+            // 1. Fetch item by PK
+            item = itemReaderRepository.findById(id, requestId)
+                    .orElseThrow(() -> new IllegalArgumentException("Item not found for id: " + id));
+
+            // 2. Map EventType → ItemStatus
+            EventType eventType = ConsignmentUtil.getEventTypeByItemStatus(ItemStatus.valueOf(status));
+
+            item.setStatus(ConsignmentUtil.mapItemStatus(eventType));
+            item.setCurrentLocationCode(locationCode);
+            item.setUpdatedDate(LocalDateTime.now());
+            item.setUpdatedBy("SYSTEM");
+
+            // 3. Update item
+            isItemUpdated = writerRepository.updateItemStatusAndLocation(item, requestId);
+
+            if (isItemUpdated) {
+                // 4. Update consignment status
+                Consignment consignment = item.getConsignment();
+
+                if (consignment != null) {
+                    consignment.setStatus(ConsignmentUtil.mapConsignmentStatus(eventType));
+                    consignment.setUpdatedDate(LocalDateTime.now());
+                    consignment.setUpdatedBy("SYSTEM");
+
+                    consignmentService.updateStatus(consignment, requestId);
+                }
+
+                // 5. Save event
+                Event event = new Event();
+                event.setItem(item);
+                event.setEventType(eventType);
+                event.setEventLocationCode(locationCode);
+                event.setDescription(eventType.name());
+                event.setCreatedBy("SYSTEM");
+                event.setUpdatedBy("SYSTEM");
+
+                eventService.saveEvent(event, requestId);
+
+            }
+
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateStatus: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateStatus: isUpdated={}|timeTaken={}",
+                    requestId, isItemUpdated, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return isItemUpdated;
     }
 }

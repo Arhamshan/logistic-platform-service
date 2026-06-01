@@ -22,4 +22,6 @@ public interface ItemService {
     String getLastBarcodeNumber(String requestId);
 
     Item getItemByBarcodeNumber(String barcodeNumber, String requestId);
+
+    Boolean updateStatus(Long id, String status, String locationCode, String requestId);
 }
