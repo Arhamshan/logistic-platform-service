@@ -95,6 +95,7 @@ public class ItemQueryUtil {
         query.append("     i.id, ");
         query.append("     i.item_id, ");
         query.append("     i.status, ");
+        query.append("     i.barcode_number, ");
         query.append("     i.current_location_code, ");
         query.append("     c.id  AS consignment_pk, ");
         query.append("     c.consignment_id ");

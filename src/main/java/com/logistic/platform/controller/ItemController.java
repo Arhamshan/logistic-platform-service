@@ -5,12 +5,14 @@ import com.logistic.common.entity.Event;
 import com.logistic.common.entity.Item;
 import com.logistic.common.entity.Consignment;
 import com.logistic.common.enums.EventType;
+import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.util.ConsignmentUtil;
 import com.logistic.platform.dto.item.ScanItemRequestDto;
 import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.service.EventService;
 import com.logistic.platform.service.ItemService;
+import com.logistic.platform.util.ConsignmentUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -56,6 +58,7 @@ public class ItemController {
             Event event = new Event();
             event.setItem(item);
             event.setEventType(EventType.valueOf(requestDto.getStatus()));
+            event.setEventType(ConsignmentUtil.getEventTypeByItemStatus(ItemStatus.valueOf(requestDto.getStatus())));
             event.setEventLocationCode(requestDto.getLocationCode());
             event.setCreatedBy(requestDto.getScannedBy());
 
