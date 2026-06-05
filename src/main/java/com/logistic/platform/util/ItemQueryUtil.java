@@ -107,6 +107,19 @@ public class ItemQueryUtil {
         return query.toString();
     }
 
+    public static String findByConsIdQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT ");
+        query.append("     i.id, ");
+        query.append("     i.item_id, ");
+        query.append("     i.status, ");
+        query.append("     i.current_location_code ");
+        query.append(" FROM \"Items\" i ");
+        query.append(" WHERE i.cons_id = ? ");
+
+        return query.toString();
+    }
+
     public static String findLastBarcodeNumberQuery() {
         StringBuilder query = new StringBuilder();
 

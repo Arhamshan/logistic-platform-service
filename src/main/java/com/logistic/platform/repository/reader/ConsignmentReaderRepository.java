@@ -1,6 +1,7 @@
 package com.logistic.platform.repository.reader;
 
 import com.logistic.common.entity.Consignment;
+import com.logistic.common.entity.Contact;
 import com.logistic.common.enums.ConsignmentStatus;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.repository.ConsignmentRepository;
@@ -138,9 +139,56 @@ public class ConsignmentReaderRepository implements ConsignmentRepository {
 
         } finally {
             LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findSummary: result={}|timeTaken={}",
-                    requestId, result, CommonUtils.getExecutionTime(startTime));
+                    requestId, CommonUtils.convertToString(result), CommonUtils.getExecutionTime(startTime));
         }
 
         return result;
+    }
+
+    public List<Consignment> findAll(int pageNumber, int pageSize, String sortBy, String sortDir, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAll : pageNumber={}|pageSize={}|sortBy={}|sortDir={}",
+                requestId, pageNumber, pageSize, sortBy, sortDir);
+
+        List<Consignment> consignments = null;
+
+        try {
+            int offSet = pageNumber * pageSize;
+
+            String sql = ConsignmentQueryUtil.findAllQuery(sortBy, sortDir);
+
+            consignments = jdbcTemplate.query(sql, new Object[]{pageSize, offSet},
+                    (rs, rowNum) -> {
+                        Consignment consignment = new Consignment();
+                        consignment.setId(rs.getLong("id"));
+                        consignment.setConsignmentId(rs.getString("consignment_id"));
+                        consignment.setStatus(ConsignmentStatus.valueOf(rs.getString("status")));
+
+                        Contact senderContact = new Contact();
+                        senderContact.setId(rs.getLong("sender_contact_id"));
+
+
+                        Contact destinationContact = new Contact();
+                        destinationContact.setId(rs.getLong("destination_contact_id"));
+
+                        consignment.setSenderContact(senderContact);
+                        consignment.setDestinationContact(destinationContact);
+
+                        return consignment;
+                    });
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findAll: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to fetch summary", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findAll: result={}|timeTaken={}",
+                    requestId, CommonUtils.convertToString(consignments), CommonUtils.getExecutionTime(startTime));
+        }
+
+        return consignments;
     }
 }

@@ -19,4 +19,6 @@ public interface ConsignmentService {
     TrackingConsignmentVo getByConsignmentId(String consignmentId, String requestId);
 
     SummaryVo getSummary(String requestId);
+
+    List<Consignment> getAllConsignments(int pageNumber, int pageSize, String sortBy, String sortDir, String requestId);
 }

@@ -24,4 +24,7 @@ public interface ItemService {
     Item getItemByBarcodeNumber(String barcodeNumber, String requestId);
 
     Boolean updateStatus(Long id, String status, String locationCode, String requestId);
+
+    List<Item> getByConsId(Long consId, String requestId);
+
 }
