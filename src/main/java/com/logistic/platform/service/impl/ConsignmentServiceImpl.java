@@ -295,9 +295,53 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
         } finally {
             LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getSummary: result={}|timeTaken={}",
-                    requestId, result, CommonUtils.getExecutionTime(startTime));
+                    requestId, CommonUtils.convertToString(result), CommonUtils.getExecutionTime(startTime));
         }
 
         return result;
+    }
+
+    @Override
+    public List<Consignment> getAllConsignments(
+            int pageNumber,
+            int pageSize,
+            String sortBy,
+            String sortDir,
+            String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getAllConsignments : pageNumber={}|pageSize={}|sortBy={}|sortDir={}",
+                requestId, pageNumber, pageSize, sortBy, sortDir);
+
+        List<Consignment> consignments = null;
+
+        try {
+            consignments = readerRepository.findAll(pageNumber, pageSize, sortBy, sortDir, requestId);
+
+            if (consignments != null) {
+                consignments.forEach(con -> {
+                    con.setSenderContact(contactService.getById(con.getSenderContact().getId(), requestId));
+                    con.setDestinationContact(contactService.getById(con.getDestinationContact().getId(), requestId));
+
+                    List<Item> items = itemService.getByConsId(con.getId(), requestId);
+
+                    if (items != null && !items.isEmpty()) {
+                        con.setCurrentLocationCode(items.get(0).getCurrentLocationCode());
+                    }
+                });
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getAllConsignments: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getAllConsignments: timeTaken={}",
+                    requestId, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return consignments;
     }
 }

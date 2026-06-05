@@ -5,6 +5,8 @@ import com.logistic.common.entity.Consignment;
 import com.logistic.common.entity.Pod;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.dto.consignment.CreateConsignmentRequestDto;
+import com.logistic.platform.dto.consignment.GetAllConsignmentsResponseDto;
+import com.logistic.platform.dto.consignment.GetAllConsignmentsDto;
 import com.logistic.platform.dto.consignment.SummaryResponseDto;
 import com.logistic.platform.dto.consignment.TrackingConsignmentResponseDto;
 import com.logistic.platform.dto.item.ItemProcessDto;
@@ -257,6 +259,60 @@ public class ConsignmentController {
         } finally {
             response.setTimestamp(LocalDateTime.now());
             LOGGER.info("END [REST-LAYER] [RequestId={}] savePod: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<ResponseDto<GetAllConsignmentsResponseDto>> getAll(
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] getAll: pageNumber={}|pageSize={}|sortBy={}|sortDir={}",
+                requestId, pageNumber, pageSize, sortBy, sortDir);
+
+        ResponseDto<GetAllConsignmentsResponseDto> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            List<Consignment> consignments = service.getAllConsignments(pageNumber, pageSize, sortBy, sortDir, requestId);
+
+            if (consignments != null && !consignments.isEmpty()) {
+
+                List<GetAllConsignmentsDto> consignmentDtos = consignments.stream()
+                        .map(GetAllConsignmentsDto::new).collect(Collectors.toList());
+
+                GetAllConsignmentsResponseDto responseDto = new GetAllConsignmentsResponseDto(consignments.size(), consignmentDtos);
+
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Consignments retrieved successfully");
+                response.setData(responseDto);
+
+            } else {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Consignments not found");
+            }
+
+        } catch (Exception e) {
+
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to get consignments");
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] getAll: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+
+            response.setTimestamp(LocalDateTime.now());
+
+            LOGGER.info("END [REST-LAYER] [RequestId={}] getAll: response={}|timeTaken={}",
                     requestId, response, CommonUtils.getExecutionTime(startTime));
         }
 
