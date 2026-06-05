@@ -69,4 +69,20 @@ public class ConsignmentQueryUtil {
         return query.toString();
     }
 
+    public static String findAllQuery(String sortBy, String sortDir) {
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT ");
+        query.append("     id, ");
+        query.append("     consignment_id, ");
+        query.append("     status, ");
+        query.append("     sender_contact_id, ");
+        query.append("     destination_contact_id ");
+        query.append(" FROM \"Consignments\" ");
+        query.append(" ORDER BY " + sortBy + " " + sortDir.toUpperCase() + " ");
+        query.append(" LIMIT ? ");
+        query.append(" OFFSET ? ");
+
+        return query.toString();
+    }
+
 }

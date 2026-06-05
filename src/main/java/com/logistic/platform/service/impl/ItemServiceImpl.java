@@ -270,8 +270,8 @@ public class ItemServiceImpl implements ItemService {
             throw e;
 
         } finally {
-            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getItemByBarcodeNumber: barcodeNumber={}|timeTaken={}",
-                    requestId, barcodeNumber, CommonUtils.getExecutionTime(startTime));
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getItemByBarcodeNumber: timeTaken={}",
+                    requestId, CommonUtils.getExecutionTime(startTime));
         }
 
         return item;
@@ -342,5 +342,20 @@ public class ItemServiceImpl implements ItemService {
         }
 
         return isItemUpdated;
+    }
+
+    @Override
+    public List<Item> getByConsId(Long consId, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getByConsId: consId={}", requestId, consId);
+
+        List<Item> items = itemReaderRepository.findByConsId(consId, requestId);
+
+        LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getByConsId: timeTaken={}",
+                requestId, CommonUtils.getExecutionTime(startTime));
+
+        return items;
     }
 }

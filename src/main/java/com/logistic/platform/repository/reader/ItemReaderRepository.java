@@ -28,6 +28,7 @@ public class ItemReaderRepository implements ItemRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Override
     public Optional<Item> findByConsignmentIdAndItemId(String consignmentId,
                                        String itemId,
                                        String requestId) {
@@ -79,7 +80,7 @@ public class ItemReaderRepository implements ItemRepository {
         return result.stream().findFirst();
     }
 
-    // item tracing for consignment #97
+    @Override
     public List<Item> findItemsByConsignmentId(String consignmentId, String requestId) {
 
         long startTime = System.currentTimeMillis();
@@ -117,7 +118,7 @@ public class ItemReaderRepository implements ItemRepository {
         return result;
     }
 
-    // Scanning items API #101
+    @Override
     public String findLastBarcodeNumber(String requestId) {
 
         long startTime = System.currentTimeMillis();
@@ -149,6 +150,7 @@ public class ItemReaderRepository implements ItemRepository {
         return lastBarcode;
     }
 
+    @Override
     public Optional<Item> findByBarcodeNumber(String barcodeNumber, String requestId) {
 
         long startTime = System.currentTimeMillis();
@@ -234,5 +236,41 @@ public class ItemReaderRepository implements ItemRepository {
         return (result != null && !result.isEmpty())
                 ? Optional.of(result.get(0))
                 : Optional.empty();
+    }
+
+    @Override
+    public List<Item> findByConsId(Long consId, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findByConsId: consId={}", requestId, consId);
+
+        List<Item> itemsList = null;
+
+        try {
+            String sql = ItemQueryUtil.findByConsIdQuery();
+
+            itemsList = jdbcTemplate.query(sql, new Object[]{consId},
+                    (rs, rowNum) -> {
+                        Item item = new Item();
+                        item.setId(rs.getLong("id"));
+                        item.setItemId(rs.getString("item_id"));
+                        item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+                        item.setCurrentLocationCode(rs.getString("current_location_code"));
+
+                        return item;
+                    });
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findByConsId: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to fetch item by consId", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findByConsId: itemsList={}|timeTaken={}",
+                    requestId, itemsList, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return itemsList;
     }
 }

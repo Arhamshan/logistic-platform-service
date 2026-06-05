@@ -32,4 +32,11 @@ public interface ItemRepository {
         return Optional.empty();
     }
 
+    public default Optional<Item> findByBarcodeNumber(String barcodeNumber, String requestId) {
+        return Optional.empty();
+    }
+
+    public default List<Item> findByConsId(Long consId, String requestId){
+        return null;
+    }
 }
