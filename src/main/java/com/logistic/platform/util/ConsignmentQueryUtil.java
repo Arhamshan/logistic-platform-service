@@ -85,4 +85,12 @@ public class ConsignmentQueryUtil {
         return query.toString();
     }
 
+    public static String deleteByIdQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" DELETE FROM dev.\"Consignments\" ");
+        query.append(" WHERE id = ? ");
+
+        return query.toString();
+    }
+
 }

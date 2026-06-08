@@ -21,4 +21,6 @@ public interface ConsignmentService {
     SummaryVo getSummary(String requestId);
 
     List<Consignment> getAllConsignments(int pageNumber, int pageSize, String sortBy, String sortDir, String requestId);
+
+    Boolean deleteById(Long id, String requestId);
 }

@@ -344,4 +344,30 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
         return consignments;
     }
+
+    @Override
+    public Boolean deleteById(Long id, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] deleteById: id={}",
+                requestId, id);
+
+        Boolean isDeleted = Boolean.FALSE;
+
+        try {
+            isDeleted = writerRepository.deleteById(id, requestId);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] deleteById: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] deleteById: isDeleted={}|timeTaken={}",
+                    requestId, isDeleted, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return isDeleted;
+    }
 }
