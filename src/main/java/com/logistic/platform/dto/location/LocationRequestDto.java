@@ -23,6 +23,8 @@ public class LocationRequestDto {
 
     private String longitude;
 
+    private String createdBy;
+
     public Location toLocation() {
         Location loc = new Location();
 
@@ -32,6 +34,7 @@ public class LocationRequestDto {
         loc.setCountry(this.country);
         loc.setLatitude(this.latitude);
         loc.setLongitude(this.longitude);
+        loc.setCreatedBy(this.createdBy);
 
         return loc;
     }

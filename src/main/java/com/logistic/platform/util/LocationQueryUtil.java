@@ -94,4 +94,14 @@ public class LocationQueryUtil {
 
         return query.toString();
     }
+
+    public static String deleteByIdQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append("DELETE FROM ");
+        query.append("\"Locations\" ");
+        query.append("WHERE ");
+        query.append("id = ?");
+
+        return query.toString();
+    }
 }
