@@ -77,6 +77,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 path.startsWith("/v1/auth") ||
                 path.startsWith("/v1/user") ||
                 path.startsWith("/v1/location") ||
+                path.startsWith("/v1/consignment") ||
                 path.startsWith("/assets") ||
                 path.equals("/login") ||
                 path.equals("/logout");
