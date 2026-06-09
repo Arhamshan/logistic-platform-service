@@ -87,8 +87,10 @@ public class ConsignmentQueryUtil {
 
     public static String deleteByIdQuery() {
         StringBuilder query = new StringBuilder();
-        query.append(" DELETE FROM dev.\"Consignments\" ");
-        query.append(" WHERE id = ? ");
+        query.append(" DELETE FROM ");
+        query.append("  \"Consignments\" ");
+        query.append(" WHERE ");
+        query.append(" id = ? ");
 
         return query.toString();
     }
