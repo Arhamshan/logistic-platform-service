@@ -95,7 +95,7 @@ public class LocationController {
 
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            LOGGER.info("START [REST-LAYER] [RequestId={}] getAllLocations: usernameFromAuthHeader={}", requestId, auth.getName());
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] getAllLocations: usernameFromAuthHeader={}", requestId, auth.getName());
 
             // Service returns List<Location> (entities), not DTOs
             List<Location> locations = service.getAllLocations(requestId);
