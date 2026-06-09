@@ -2,6 +2,8 @@ package com.logistic.platform.repository;
 
 
 import com.logistic.common.entity.Consignment;
+import com.logistic.platform.dto.consignment.GetConsignmentResponseDto;
+import com.logistic.platform.vo.ConsignmentVo;
 import com.logistic.platform.vo.SummaryVo;
 import com.logistic.platform.vo.TrackingConsignmentVo;
 
@@ -35,4 +37,9 @@ public interface ConsignmentRepository {
         return false;
     };
 
-}
+    public default Optional<ConsignmentVo> findById(Long id, String requestId){
+        return Optional.empty();
+    }
+
+
+    }

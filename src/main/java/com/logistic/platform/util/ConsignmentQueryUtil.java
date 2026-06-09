@@ -95,4 +95,22 @@ public class ConsignmentQueryUtil {
         return query.toString();
     }
 
+    public static String findByIdQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT ");
+        query.append("     c.id, ");
+        query.append("     c.consignment_id, ");
+        query.append("     c.status, ");
+        query.append("     i.id        AS item_pk, ");
+        query.append("     i.item_id, ");
+        query.append("     i.status    AS item_status, ");
+        query.append("     i.current_location_code ");
+        query.append(" FROM \"Consignments\" c ");
+        query.append(" LEFT JOIN \"Items\" i ");
+        query.append("     ON i.cons_id = c.id ");
+        query.append(" WHERE c.id = ? ");
+
+        return query.toString();
+    }
+
 }

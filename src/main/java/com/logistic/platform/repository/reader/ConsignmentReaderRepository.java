@@ -4,8 +4,12 @@ import com.logistic.common.entity.Consignment;
 import com.logistic.common.entity.Contact;
 import com.logistic.common.enums.ConsignmentStatus;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.platform.dto.consignment.GetConsignmentResponseDto;
+import com.logistic.platform.dto.item.ConsignmentItemResponseDto;
 import com.logistic.platform.repository.ConsignmentRepository;
 import com.logistic.platform.util.ConsignmentQueryUtil;
+import com.logistic.platform.vo.ConsignmentItemVo;
+import com.logistic.platform.vo.ConsignmentVo;
 import com.logistic.platform.vo.SummaryVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +19,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository("consignmentReaderRepository")
@@ -190,5 +196,49 @@ public class ConsignmentReaderRepository implements ConsignmentRepository {
         }
 
         return consignments;
+    }
+
+    public Optional<ConsignmentVo> findById(Long id, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findById: id={}", requestId, id);
+
+        ConsignmentVo  result = null;
+
+        try {
+            String sql = ConsignmentQueryUtil.findByIdQuery();
+
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, id);
+
+            if (rows != null && !rows.isEmpty()) {
+                result = new ConsignmentVo();
+                result.setConsignmentId((String) rows.get(0).get("consignment_id"));
+                result.setStatus((String) rows.get(0).get("status"));
+
+                List<ConsignmentItemVo> items = new ArrayList<>();
+                for (Map<String, Object> row : rows) {
+                    if (row.get("item_pk") != null) {
+                        items.add(new ConsignmentItemVo(
+                                (String) row.get("item_id"),
+                                (String) row.get("item_status"),
+                                (String) row.get("current_location_code")
+                        ));
+                    }
+                }
+                result.setItems(items);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findById: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to fetch consignment", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findById: found={}|timeTaken={}",
+                    requestId, result != null, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result != null ? Optional.of(result) : Optional.empty();
     }
 }
