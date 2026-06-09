@@ -4,16 +4,13 @@ import com.logistic.common.dto.ResponseDto;
 import com.logistic.common.entity.Consignment;
 import com.logistic.common.entity.Pod;
 import com.logistic.common.util.CommonUtils;
-import com.logistic.platform.dto.consignment.CreateConsignmentRequestDto;
-import com.logistic.platform.dto.consignment.GetAllConsignmentsResponseDto;
-import com.logistic.platform.dto.consignment.GetAllConsignmentsDto;
-import com.logistic.platform.dto.consignment.SummaryResponseDto;
-import com.logistic.platform.dto.consignment.TrackingConsignmentResponseDto;
+import com.logistic.platform.dto.consignment.*;
 import com.logistic.platform.dto.item.ItemProcessDto;
 import com.logistic.platform.dto.pod.PodRequestDto;
 import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.service.PodService;
 import com.logistic.platform.util.ConsignmentValidationUtil;
+import com.logistic.platform.vo.ConsignmentVo;
 import com.logistic.platform.vo.ItemProcessResultVo;
 import com.logistic.platform.vo.SummaryVo;
 import com.logistic.platform.vo.TrackingConsignmentVo;
@@ -356,6 +353,52 @@ public class ConsignmentController {
         } finally {
             response.setTimestamp(LocalDateTime.now());
             LOGGER.info("END [REST-LAYER] [RequestId={}] deleteConsignment: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseDto<GetConsignmentResponseDto>> getConsignmentById(
+            @PathVariable("id") Long id,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] getConsignmentById: id={}",
+                requestId, id);
+
+        ResponseDto<GetConsignmentResponseDto> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            ConsignmentVo consignment = service.getById(id, requestId);
+
+            if (consignment == null) {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Consignment not found");
+                response.setData(null);
+
+            } else {
+                GetConsignmentResponseDto dto = new GetConsignmentResponseDto(consignment);
+
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Consignment retrieved successfully");
+                response.setData(dto);
+            }
+
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to get consignment");
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] getConsignmentById: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+
+            LOGGER.info("END [REST-LAYER] [RequestId={}] getConsignmentById: response={}|timeTaken={}",
                     requestId, response, CommonUtils.getExecutionTime(startTime));
         }
 

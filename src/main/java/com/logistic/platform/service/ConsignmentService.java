@@ -1,6 +1,8 @@
 package com.logistic.platform.service;
 
 import com.logistic.common.entity.Consignment;
+import com.logistic.platform.dto.consignment.GetConsignmentResponseDto;
+import com.logistic.platform.vo.ConsignmentVo;
 import com.logistic.platform.vo.ItemProcessResultVo;
 import com.logistic.platform.vo.SummaryVo;
 import com.logistic.platform.vo.TrackingConsignmentVo;
@@ -23,4 +25,6 @@ public interface ConsignmentService {
     List<Consignment> getAllConsignments(int pageNumber, int pageSize, String sortBy, String sortDir, String requestId);
 
     Boolean deleteById(Long id, String requestId);
+
+    ConsignmentVo getById(Long id, String requestId);
 }

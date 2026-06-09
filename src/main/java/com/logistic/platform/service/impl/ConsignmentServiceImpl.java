@@ -7,6 +7,7 @@ import com.logistic.common.entity.Location;
 import com.logistic.common.enums.ConsignmentStatus;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.platform.dto.consignment.GetConsignmentResponseDto;
 import com.logistic.platform.repository.reader.ConsignmentReaderRepository;
 import com.logistic.platform.repository.writer.ConsignmentWriterRepository;
 import com.logistic.platform.service.ConsignmentService;
@@ -369,5 +370,30 @@ public class ConsignmentServiceImpl implements ConsignmentService {
         }
 
         return isDeleted;
+    }
+
+    @Override
+    public ConsignmentVo getById(Long id, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getById: id={}", requestId, id);
+
+        ConsignmentVo result = null;
+
+        try {
+            result = readerRepository.findById(id, requestId).orElse(null);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getById: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getById: result={}|timeTaken={}",
+                    requestId, CommonUtils.convertToString(result), CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
     }
 }
