@@ -107,4 +107,32 @@ public class ConsignmentWriterRepository implements ConsignmentRepository {
 
         return isUpdated;
     }
+
+    public Boolean deleteById(Long id, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] deleteById: id={}",
+                requestId, id);
+
+        Boolean isDeleted = Boolean.FALSE;
+
+        try {
+            String sql = ConsignmentQueryUtil.deleteByIdQuery();
+
+            int rowsAffected = jdbcTemplate.update(sql, id);
+            isDeleted = rowsAffected > 0;
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] deleteById: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to delete consignment", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] deleteById: isDeleted={}|timeTaken={}",
+                    requestId, isDeleted, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return isDeleted;
+    }
 }

@@ -27,4 +27,8 @@ public interface LocationRepository {
         return null;
     };
 
+    public default Boolean deleteById(Long id, String requestId){
+        return false;
+    };
+
 }

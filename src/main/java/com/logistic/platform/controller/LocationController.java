@@ -260,4 +260,47 @@ public class LocationController {
 
         return ResponseEntity.status(HttpStatus.valueOf(response.getResponseCode())).body(response);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResponseDto<Void>> deleteLocation(
+            @PathVariable("id") Long id,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] deleteLocation: id={}",
+                requestId, id);
+
+        ResponseDto<Void> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            Boolean isDeleted = service.deleteById(id, requestId);
+
+            if (Boolean.TRUE.equals(isDeleted)) {
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Location deleted successfully.");
+                response.setData(null);
+
+            } else {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Failed to delete location.");
+                response.setData(null);
+            }
+
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to delete location.");
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] deleteLocation: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] deleteLocation: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
+    }
 }

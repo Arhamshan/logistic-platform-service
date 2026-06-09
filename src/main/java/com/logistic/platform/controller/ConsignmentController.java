@@ -318,4 +318,47 @@ public class ConsignmentController {
 
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResponseDto<Void>> deleteConsignment(
+            @PathVariable("id") Long id,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] deleteConsignment: id={}",
+                requestId, id);
+
+        ResponseDto<Void> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            Boolean isDeleted = service.deleteById(id, requestId);
+
+            if (Boolean.TRUE.equals(isDeleted)) {
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Consignment deleted successfully.");
+                response.setData(null);
+
+            } else {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Failed to delete consignment.");
+                response.setData(null);
+            }
+
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to delete consignment.");
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] deleteConsignment: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] deleteConsignment: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
+    }
 }

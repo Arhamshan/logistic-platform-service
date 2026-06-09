@@ -14,4 +14,6 @@ public interface LocationService {
     Boolean updateLocation(Location location, String requestId);
 
     Location getLocationByCode(String locationCode, String requestId);
+
+    Boolean deleteById(Long id, String requestId);
 }
