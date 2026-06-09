@@ -377,8 +377,7 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getById: id={}",
-                requestId, id);
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getById: id={}", requestId, id);
 
         ConsignmentVo result = null;
 

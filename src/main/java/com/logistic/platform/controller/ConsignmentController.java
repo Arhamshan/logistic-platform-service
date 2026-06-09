@@ -362,13 +362,12 @@ public class ConsignmentController {
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDto<GetConsignmentResponseDto>> getConsignmentById(
             @PathVariable("id") Long id,
-            @RequestParam("locationCode") String locationCode,
             @RequestParam("requestId") String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REST-LAYER] [RequestId={}] getConsignmentById: id={}|locationCode={}",
-                requestId, id, locationCode);
+        LOGGER.info("START [REST-LAYER] [RequestId={}] getConsignmentById: id={}",
+                requestId, id);
 
         ResponseDto<GetConsignmentResponseDto> response = new ResponseDto<>();
         response.setRequestId(requestId);
@@ -398,6 +397,7 @@ public class ConsignmentController {
 
         } finally {
             response.setTimestamp(LocalDateTime.now());
+
             LOGGER.info("END [REST-LAYER] [RequestId={}] getConsignmentById: response={}|timeTaken={}",
                     requestId, response, CommonUtils.getExecutionTime(startTime));
         }

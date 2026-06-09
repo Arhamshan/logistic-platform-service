@@ -49,7 +49,7 @@ public class GetAllConsignmentsDto {
     public GetAllConsignmentsDto(Consignment consignment) {
         this.id = consignment.getId();
         this.consignmentId = consignment.getConsignmentId();
-        this.status = consignment.getConsignmentId();
+        this.status = String.valueOf(consignment.getStatus());
         this.locationCode = consignment.getCurrentLocationCode();
         this.senderContactName = consignment.getSenderContact().getName();
         this.senderContactAddressLine1 = consignment.getSenderContact().getAddressLine1();
