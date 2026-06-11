@@ -72,8 +72,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v1/auth/**").permitAll()
                         .requestMatchers("/v1/user/**").permitAll()
-                        .requestMatchers("/v1/location/**").permitAll()
-                        .requestMatchers("/v1/consignment/**").permitAll()
                         .requestMatchers("/assets/**").permitAll()
                         .requestMatchers("/login", "/logout").permitAll()
                         .requestMatchers("/*.css", "/*.js", "/*.ico").permitAll()
