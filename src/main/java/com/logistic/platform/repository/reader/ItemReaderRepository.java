@@ -99,6 +99,11 @@ public class ItemReaderRepository implements ItemRepository {
                         item.setId(rs.getLong("id"));
                         item.setItemId(rs.getString("item_id"));
                         item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+                        item.setBarcodeNumber(rs.getString("barcode_number"));
+                        item.setWeight(Math.round(rs.getFloat("weight") * 100) / 100f);
+                        item.setHeight(Math.round(rs.getFloat("height") * 100) / 100f);
+                        item.setWidth(Math.round(rs.getFloat("width") * 100) / 100f);
+                        item.setLength(Math.round(rs.getFloat("length") * 100) / 100f);
                         item.setCurrentLocationCode(rs.getString("current_location_code"));
                         return item;
                     });
@@ -109,9 +114,9 @@ public class ItemReaderRepository implements ItemRepository {
             throw new RuntimeException("Failed to fetch items for consignment", e);
 
         } finally {
-            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findItemsByConsignmentId: count={}|timeTaken={}",
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findItemsByConsignmentId: result={}|timeTaken={}",
                     requestId,
-                    result != null ? result.size() : 0,
+                    CommonUtils.convertToString(result),
                     CommonUtils.getExecutionTime(startTime));
         }
 

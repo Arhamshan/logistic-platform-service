@@ -17,6 +17,21 @@ public class TrackingItemVo {
     @JsonProperty("status")
     private String status;
 
+    @JsonProperty("barcode_number")
+    private String barcode;
+
+    @JsonProperty("weight")
+    private Double weight;
+
+    @JsonProperty("height")
+    private Double height;
+
+    @JsonProperty("width")
+    private Double width;
+
+    @JsonProperty("length")
+    private Double length;
+
     @JsonProperty("currentLocation")
     private TrackingLocationVo currentLocation;
 

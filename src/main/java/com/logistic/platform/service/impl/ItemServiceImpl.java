@@ -171,6 +171,11 @@ public class ItemServiceImpl implements ItemService {
                     TrackingItemVo itemVo = new TrackingItemVo();
                     itemVo.setItemId(item.getItemId());
                     itemVo.setStatus(item.getStatus().name());
+                    itemVo.setBarcode(item.getBarcodeNumber());
+                    itemVo.setWeight(Double.valueOf(item.getWeight()));
+                    itemVo.setHeight(Double.valueOf(item.getHeight()));
+                    itemVo.setWidth(Double.valueOf(item.getWidth()));
+                    itemVo.setLength(Double.valueOf(item.getLength()));
                     itemVo.setCurrentLocationCode(item.getCurrentLocationCode());
                     itemVo.setTracking(eventService.getTrackingEvents(item.getId(), requestId));
                     result.add(itemVo);

@@ -75,6 +75,7 @@ public class ConsignmentQueryUtil {
         query.append("     id, ");
         query.append("     consignment_id, ");
         query.append("     status, ");
+        query.append("     created_date, ");
         query.append("     sender_contact_id, ");
         query.append("     destination_contact_id ");
         query.append(" FROM \"Consignments\" ");

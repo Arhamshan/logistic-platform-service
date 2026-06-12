@@ -19,6 +19,16 @@ public class TrackingItemResponseDto {
 
     private String status;
 
+    private String barcode;
+
+    private Double weight;
+
+    private Double height;
+
+    private Double width;
+
+    private Double length;
+
     private LocationResponseDto currentLocation;
 
     private List<TrackingEventResponseDto> tracking;
@@ -28,7 +38,12 @@ public class TrackingItemResponseDto {
     public TrackingItemResponseDto(TrackingItemVo vo) {
         this.itemId = vo.getItemId();
         this.status = vo.getStatus();
-        this.currentLocationCode = vo.getCurrentLocationCode();
+        this.barcode = vo.getBarcode();
+        this.weight = vo.getWeight() != null ? vo.getWeight() : null;
+        this.height = vo.getHeight() != null ? vo.getHeight() : null;
+        this.width  = vo.getWidth()  != null ? vo.getWidth() : null;
+        this.length = vo.getLength() != null ? vo.getLength() : null;
+        //this.currentLocationCode = vo.getCurrentLocationCode();
         this.currentLocation = vo.getCurrentLocation() != null
                 ? new LocationResponseDto(
                 vo.getCurrentLocation().getName(),

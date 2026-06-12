@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -46,6 +48,9 @@ public class GetAllConsignmentsDto {
 
     private String destinationContactCountry;
 
+    private LocalDateTime createdDate;
+
+
     public GetAllConsignmentsDto(Consignment consignment) {
         this.id = consignment.getId();
         this.consignmentId = consignment.getConsignmentId();
@@ -65,5 +70,6 @@ public class GetAllConsignmentsDto {
         this.destinationContactSuburb = consignment.getDestinationContact().getSuburb();
         this.destinationContactPostcode = consignment.getDestinationContact().getPostcode();
         this.destinationContactCountry = consignment.getDestinationContact().getCountry();
+        this.createdDate = consignment.getCreatedDate();
     }
 }

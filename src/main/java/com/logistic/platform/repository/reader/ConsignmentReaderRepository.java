@@ -19,6 +19,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -171,6 +172,7 @@ public class ConsignmentReaderRepository implements ConsignmentRepository {
                         consignment.setId(rs.getLong("id"));
                         consignment.setConsignmentId(rs.getString("consignment_id"));
                         consignment.setStatus(ConsignmentStatus.valueOf(rs.getString("status")));
+                        consignment.setCreatedDate(rs.getTimestamp("created_date").toLocalDateTime());
 
                         Contact senderContact = new Contact();
                         senderContact.setId(rs.getLong("sender_contact_id"));

@@ -80,6 +80,11 @@ public class ItemQueryUtil {
         query.append("     i.id, ");
         query.append("     i.item_id, ");
         query.append("     i.status, ");
+        query.append("     barcode_number, ");
+        query.append("     weight, ");
+        query.append("     height, ");
+        query.append("     width, ");
+        query.append("     length, ");
         query.append("     i.current_location_code ");
         query.append(" FROM \"Items\" i ");
         query.append(" INNER JOIN \"Consignments\" c ");
