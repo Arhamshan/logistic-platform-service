@@ -118,7 +118,12 @@ public class ItemQueryUtil {
         query.append("     i.id, ");
         query.append("     i.item_id, ");
         query.append("     i.status, ");
-        query.append("     i.current_location_code ");
+        query.append("     i.current_location_code, ");
+        query.append("     i.barcode_number, ");
+        query.append("     i.weight, ");
+        query.append("     i.height, ");
+        query.append("     i.width, ");
+        query.append("     i.length ");
         query.append(" FROM \"Items\" i ");
         query.append(" WHERE i.cons_id = ? ");
 
