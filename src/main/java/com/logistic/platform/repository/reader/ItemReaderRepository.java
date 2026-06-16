@@ -262,6 +262,7 @@ public class ItemReaderRepository implements ItemRepository {
                         item.setItemId(rs.getString("item_id"));
                         item.setStatus(ItemStatus.valueOf(rs.getString("status")));
                         item.setCurrentLocationCode(rs.getString("current_location_code"));
+                        item.setBarcodeNumber(rs.getString("barcode_number"));
                         item.setWeight(rs.getFloat("weight"));
                         item.setHeight(rs.getFloat("height"));
                         item.setWidth(rs.getFloat("width"));
