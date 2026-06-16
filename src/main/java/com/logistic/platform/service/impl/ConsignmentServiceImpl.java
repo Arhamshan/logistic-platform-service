@@ -327,6 +327,8 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
                     List<Item> items = itemService.getByConsId(con.getId(), requestId);
 
+                    con.setItems(items);
+
                     if (items != null && !items.isEmpty()) {
                         con.setCurrentLocationCode(items.get(0).getCurrentLocationCode());
                     }

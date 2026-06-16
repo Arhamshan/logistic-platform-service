@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -50,6 +52,7 @@ public class GetAllConsignmentsDto {
 
     private LocalDateTime createdDate;
 
+    private List<GetAllConsignmentsItemDto> items;
 
     public GetAllConsignmentsDto(Consignment consignment) {
         this.id = consignment.getId();
@@ -71,5 +74,10 @@ public class GetAllConsignmentsDto {
         this.destinationContactPostcode = consignment.getDestinationContact().getPostcode();
         this.destinationContactCountry = consignment.getDestinationContact().getCountry();
         this.createdDate = consignment.getCreatedDate();
+        boolean hasItems = consignment.getItems() != null && !consignment.getItems().isEmpty();
+
+        this.items = hasItems
+                ? consignment.getItems().stream().map(GetAllConsignmentsItemDto::new).collect(Collectors.toList())
+                : null;
     }
 }
