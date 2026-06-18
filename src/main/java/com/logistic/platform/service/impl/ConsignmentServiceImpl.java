@@ -133,6 +133,7 @@ public class ConsignmentServiceImpl implements ConsignmentService {
                     item.setConsignment(new Consignment(consignment.getId(), consignment.getConsignmentId()));
                     item.setStatus(ItemStatus.BOOKED);
                     item.setBarcodeNumber(barcodes.get(i));
+                    item.setCreatedBy(consignment.getCreatedBy());
 
                     try {
                         Boolean isItemSaved = itemService.save(item, requestId);

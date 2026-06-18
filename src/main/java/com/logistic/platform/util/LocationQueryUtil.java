@@ -69,7 +69,8 @@ public class LocationQueryUtil {
         query.append("country = ?, ");
         query.append("city = ?, ");
         query.append("latitude = ?, ");
-        query.append("longitude = ? ");
+        query.append("longitude = ?, ");
+        query.append("updated_by = ? ");
         query.append("WHERE ");
         query.append("id = ?");
 

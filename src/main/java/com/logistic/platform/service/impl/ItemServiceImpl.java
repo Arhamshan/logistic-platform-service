@@ -284,7 +284,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public Boolean updateStatus(Long id, String status, String locationCode, String requestId) {
+    public Boolean updateStatus(Long id, String status, String locationCode, String requestId, String username) {
 
         long startTime = System.currentTimeMillis();
 
@@ -305,7 +305,7 @@ public class ItemServiceImpl implements ItemService {
             item.setStatus(ConsignmentUtil.mapItemStatus(eventType));
             item.setCurrentLocationCode(locationCode);
             item.setUpdatedDate(LocalDateTime.now());
-            item.setUpdatedBy("SYSTEM");
+            item.setUpdatedBy(username);
 
             // 3. Update item
             isItemUpdated = writerRepository.updateItemStatusAndLocation(item, requestId);
@@ -317,7 +317,7 @@ public class ItemServiceImpl implements ItemService {
                 if (consignment != null) {
                     consignment.setStatus(ConsignmentUtil.mapConsignmentStatus(eventType));
                     consignment.setUpdatedDate(LocalDateTime.now());
-                    consignment.setUpdatedBy("SYSTEM");
+                    consignment.setUpdatedBy(username);
 
                     consignmentService.updateStatus(consignment, requestId);
                 }
@@ -328,8 +328,8 @@ public class ItemServiceImpl implements ItemService {
                 event.setEventType(eventType);
                 event.setEventLocationCode(locationCode);
                 event.setDescription(eventType.name());
-                event.setCreatedBy("SYSTEM");
-                event.setUpdatedBy("SYSTEM");
+                event.setCreatedBy(username);
+                event.setUpdatedBy(username);
 
                 eventService.saveEvent(event, requestId);
 
