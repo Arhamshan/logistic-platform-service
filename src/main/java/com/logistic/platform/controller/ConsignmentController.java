@@ -18,6 +18,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -52,7 +54,13 @@ public class ConsignmentController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
             Consignment consignment = requestDto.getConsignment();
+
+            if(consignment != null) {
+                consignment.setCreatedBy(auth.getName());
+            }
 
             //  Validate consignment first
             String validationError = ConsignmentValidationUtil.validate(requestDto);
@@ -125,6 +133,9 @@ public class ConsignmentController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] trackConsignment: usernameFromAuthHeader={}", requestId, auth.getName());
+
             TrackingConsignmentVo tracking = service.getByConsignmentId(consignmentId, requestId);
 
             if (tracking == null) {
@@ -166,6 +177,9 @@ public class ConsignmentController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] getSummary: usernameFromAuthHeader={}", requestId, auth.getName());
+
             SummaryVo summary = service.getSummary(requestId);
 
             if (summary == null) {
@@ -218,6 +232,7 @@ public class ConsignmentController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
             Pod pod = new Pod();
             pod.setReceivedBy(requestDto.getReceivedBy());
@@ -229,9 +244,9 @@ public class ConsignmentController {
                     : null);
             pod.setDeliveredBy(null);
             pod.setCreatedDate(LocalDateTime.now());
-            pod.setCreatedBy("SYSTEM");
+            pod.setCreatedBy(auth.getName());
             pod.setUpdatedDate(LocalDateTime.now());
-            pod.setUpdatedBy("SYSTEM");
+            pod.setUpdatedBy(auth.getName());
 
             Boolean saved = podService.savePod(consignmentId, itemId, pod, requestId);
 
@@ -279,6 +294,9 @@ public class ConsignmentController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] getAll: usernameFromAuthHeader={}", requestId, auth.getName());
+
             List<Consignment> consignments = service.getAllConsignments(pageNumber, pageSize, sortBy, sortDir, requestId);
 
             if (consignments != null && !consignments.isEmpty()) {
@@ -330,6 +348,9 @@ public class ConsignmentController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] deleteConsignment: usernameFromAuthHeader={}", requestId, auth.getName());
+
             Boolean isDeleted = service.deleteById(id, requestId);
 
             if (Boolean.TRUE.equals(isDeleted)) {
@@ -373,6 +394,9 @@ public class ConsignmentController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] getConsignmentById: usernameFromAuthHeader={}", requestId, auth.getName());
+
             ConsignmentVo consignment = service.getById(id, requestId);
 
             if (consignment == null) {

@@ -76,7 +76,7 @@ public class SecurityConfig {
                         .requestMatchers("/login", "/logout").permitAll()
                         .requestMatchers("/*.css", "/*.js", "/*.ico").permitAll()
                         .requestMatchers("/v1/**").hasAnyRole(
-                                Role.OPERATIONAL_USER.name(), Role.ADMIN.name()
+                                Role.OPERATIONAL_USER.name(), Role.ADMIN.name(), Role.DRIVER.name()
                         )
                         .anyRequest().authenticated()
                 )

@@ -48,10 +48,16 @@ public class LocationController {
         LocationResponseDto responseDto = null;
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
             Location location = locationRequestDto.toLocation();
 
             String newLocationCode = service.generateLocationCode(requestId);
             location.setLocationCode(newLocationCode);
+
+            if(auth != null) {
+                location.setCreatedBy(auth.getName());
+            }
 
             Boolean isCreated = service.create(location, requestId);
 
@@ -159,9 +165,14 @@ public class LocationController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
             Location location = requestDto.toLocation();
             // No need to set ID separately as it comes from requestDto
+
+            if(auth != null) {
+                location.setUpdatedBy(auth.getName());
+            }
 
             if (location.getName() == null || location.getType() == null || location.getCountry() == null ||
                     location.getCity() == null || location.getType() == null) {
@@ -226,6 +237,9 @@ public class LocationController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] getLocationByCode: usernameFromAuthHeader={}", requestId, auth.getName());
+
             Location location = service.getLocationByCode(locationCode, requestId);  //return single Location
 
             if (location != null) {
@@ -275,6 +289,9 @@ public class LocationController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] deleteLocation: usernameFromAuthHeader={}", requestId, auth.getName());
+
             Boolean isDeleted = service.deleteById(id, requestId);
 
             if (Boolean.TRUE.equals(isDeleted)) {

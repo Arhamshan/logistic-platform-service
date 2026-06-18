@@ -100,6 +100,7 @@ public class LocationWriterRepository implements LocationRepository {
                     location.getCity(),
                     location.getLatitude(),
                     location.getLongitude(),
+                    location.getUpdatedBy(),
                     location.getId()
             );
 
