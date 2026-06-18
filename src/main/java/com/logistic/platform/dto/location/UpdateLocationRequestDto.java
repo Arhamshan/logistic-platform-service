@@ -18,6 +18,7 @@ public class UpdateLocationRequestDto {
     private String country;
     private String latitude;
     private String longitude;
+    private String updatedBy;
 
     // Add this method to convert DTO to Entity
     public Location toLocation() {
@@ -29,6 +30,7 @@ public class UpdateLocationRequestDto {
         location.setCountry(this.country);
         location.setLatitude(this.latitude);
         location.setLongitude(this.longitude);
+        location.setUpdatedBy(this.updatedBy);
         return location;
     }
 }

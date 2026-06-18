@@ -14,6 +14,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -46,6 +48,9 @@ public class ItemController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] scanItem: usernameFromAuthHeader={}", requestId, auth.getName());
+
             // 1. Fetch item by barcode
             Item item = itemService.getItemByBarcodeNumber(requestDto.getBarcode(), requestId);
 
@@ -95,7 +100,11 @@ public class ItemController {
         response.setRequestId(requestId);
 
         try {
-            Boolean isUpdated = itemService.updateStatus(id, status, locationCode, requestId);
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = auth != null ? auth.getName() : "SYSTEM";
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] updateStatus: usernameFromAuthHeader={}", requestId, username);
+
+            Boolean isUpdated = itemService.updateStatus(id, status, locationCode, requestId, username);
 
             if (Boolean.TRUE.equals(isUpdated)) {
 

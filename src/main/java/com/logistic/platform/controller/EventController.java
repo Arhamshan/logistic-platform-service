@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -49,6 +51,7 @@ public class EventController {
         response.setTimestamp(LocalDateTime.now());
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
             // Validate LocationCode
             Location location = locationService.getLocationByCode(requestDto.getLocationCode(), requestId);
@@ -59,6 +62,10 @@ public class EventController {
                 event.setEventType(EventType.valueOf(requestDto.getEventType()));
                 event.setEventLocationCode(requestDto.getLocationCode());
                 event.setDescription(requestDto.getDescription());
+
+                if (auth != null) {
+                    event.setCreatedBy(auth.getName());
+                }
 
                 // item mapping
                 Item item = new Item();
