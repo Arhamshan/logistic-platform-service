@@ -8,6 +8,7 @@ import com.logistic.common.enums.ConsignmentStatus;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.dto.consignment.GetConsignmentResponseDto;
+import com.logistic.platform.dto.consignment.UpdateConsignmentRequestDto;
 import com.logistic.platform.repository.reader.ConsignmentReaderRepository;
 import com.logistic.platform.repository.writer.ConsignmentWriterRepository;
 import com.logistic.platform.service.ConsignmentService;
@@ -57,7 +58,7 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
     @Override
     @Transactional
-    public List<ItemProcessResultVo> save(Consignment consignment, String requestId) {
+    public List<ItemProcessResultVo> save(Consignment consignment, String requestId, String username) {
 
         long startTime = System.currentTimeMillis();
 
@@ -101,12 +102,12 @@ public class ConsignmentServiceImpl implements ConsignmentService {
                     ));
                 }
 
-                Contact savedSenderContact = contactService.createContact(consignment.getSenderContact(), requestId);
+                Contact savedSenderContact = contactService.createContact(consignment.getSenderContact(), requestId, username);
                 if (savedSenderContact != null) {
                     consignment.getSenderContact().setId(savedSenderContact.getId());
                 }
 
-                Contact savedDestinationContact = contactService.createContact(consignment.getDestinationContact(), requestId);
+                Contact savedDestinationContact = contactService.createContact(consignment.getDestinationContact(), requestId, username);
                 if (savedDestinationContact != null) {
                     consignment.getDestinationContact().setId(savedDestinationContact.getId());
                 }
@@ -394,6 +395,111 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
         } finally {
             LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getById: result={}|timeTaken={}",
+                    requestId, CommonUtils.convertToString(result), CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public ConsignmentVo updateConsignment(Long id, UpdateConsignmentRequestDto requestDto, String requestId, String username) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateConsignment: id={}", requestId, id);
+
+        ConsignmentVo result = null;
+
+        try {
+            // 1. Verify consignment exists
+            Optional<ConsignmentVo> existing = readerRepository.findById(id, requestId);
+
+            if (existing.isEmpty()) {
+                LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] updateConsignment: Consignment not found for id={}",
+                        requestId, id);
+                return null;
+            }
+
+            // 2. Resolve updated contacts
+            Contact senderContact = null;
+            Contact destinationContact = null;
+
+            ConsignmentVo existingVo = existing.get();
+
+            if (requestDto.getSender() != null) {
+                Contact senderToUpdate = requestDto.getSender().getContact();
+
+                senderContact = contactService.updateContact(
+                        existingVo.getSenderContactId(),
+                        senderToUpdate,
+                        requestId,
+                        username
+                );
+            }
+
+            if (requestDto.getDestination() != null) {
+                Contact destToUpdate = requestDto.getDestination().getContact();
+
+                destinationContact = contactService.updateContact(
+                        existingVo.getDestinationContactId(),
+                        destToUpdate,
+                        requestId,
+                        username
+                );
+            }
+
+            // 3. Build partial consignment for update
+            Consignment toUpdate = new Consignment();
+            toUpdate.setId(id);
+            toUpdate.setConsignmentId(requestDto.getConsignmentId());
+            toUpdate.setCurrentLocationCode(requestDto.getLocationCode());
+            toUpdate.setUpdatedBy(username);
+
+            // 4. Persist consignment contact changes
+            writerRepository.updateConsignment(toUpdate, requestId);
+
+            // 5. Update items if provided
+            if (requestDto.getItems() != null && !requestDto.getItems().isEmpty()) {
+
+                List<Item> itemsToUpdates = requestDto.getItems().stream()
+                        .filter(dto -> dto.getId() != null) // identify by id
+                        .map(dto -> {
+                            Item item = new Item();
+                            item.setId(dto.getId());
+                            item.setItemId(dto.getItemId());
+                            item.setWeight(dto.getWeight());
+                            item.setHeight(dto.getHeight());
+                            item.setLength(dto.getLength());
+                            item.setWidth(dto.getWidth());
+
+                            String locationToSet = dto.getCurrentLocationCode() != null
+                                    ? dto.getCurrentLocationCode()
+                                    : requestDto.getLocationCode();
+
+                            item.setCurrentLocationCode(locationToSet);
+                            item.setUpdatedBy(username);
+
+                            return item;
+                        })
+                        .collect(Collectors.toList());
+
+                if (!itemsToUpdates.isEmpty()) {
+                    LOGGER.info("DETAIL [SERVICE-LAYER] [RequestId={}] updateConsignment: updating {} items", requestId, itemsToUpdates.size());
+                    writerRepository.updateItems(itemsToUpdates, username, requestId);
+                }
+            }
+
+            // 6. Re-fetch to return latest state
+            result = readerRepository.findById(id, requestId).orElse(null);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateConsignment: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateConsignment: result={}|timeTaken={}",
                     requestId, CommonUtils.convertToString(result), CommonUtils.getExecutionTime(startTime));
         }
 

@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ItemDto {
 
+    private Long id;
+
     private String itemId;
 
     private Float height;
@@ -21,9 +23,12 @@ public class ItemDto {
 
     private Float length;
 
+    private String currentLocationCode;
+
     public Item getItem(ItemStatus status, String locationCode) {
         Item item = new Item();
 
+        item.setId(this.id);
         item.setItemId(this.itemId);
         item.setHeight(this.height);
         item.setWeight(this.weight);

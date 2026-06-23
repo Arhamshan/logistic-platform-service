@@ -102,6 +102,8 @@ public class ConsignmentQueryUtil {
         query.append("     c.id, ");
         query.append("     c.consignment_id, ");
         query.append("     c.status, ");
+        query.append("     c.sender_contact_id, ");
+        query.append("     c.destination_contact_id, ");
         query.append("     i.id        AS item_pk, ");
         query.append("     i.item_id, ");
         query.append("     i.status    AS item_status, ");
@@ -114,4 +116,30 @@ public class ConsignmentQueryUtil {
         return query.toString();
     }
 
+    public static String updateConsignmentQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" UPDATE \"Consignments\" ");
+        query.append(" SET consignment_id         = COALESCE(?, consignment_id), ");
+        query.append("     updated_date           = ?, ");
+        query.append("     updated_by             = ? ");
+        query.append(" WHERE id = ? ");
+
+        return query.toString();
+    }
+
+    public static String updateItemQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" UPDATE \"Items\" ");
+        query.append(" SET item_id              = COALESCE(?, item_id), ");
+        query.append("     weight               = COALESCE(?, weight), ");
+        query.append("     height               = COALESCE(?, height), ");
+        query.append("     length               = COALESCE(?, length), ");
+        query.append("     width                = COALESCE(?, width), ");
+        query.append("     current_location_code = COALESCE(?, current_location_code), ");
+        query.append("     updated_date         = ?, ");
+        query.append("     updated_by           = ? ");
+        query.append(" WHERE id = ? ");
+
+        return query.toString();
+    }
 }
