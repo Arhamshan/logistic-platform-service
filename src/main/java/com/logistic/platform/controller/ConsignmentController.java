@@ -434,7 +434,7 @@ public class ConsignmentController {
     @PutMapping("/{id}")
     public ResponseEntity<ResponseDto<UpdateConsignmentResponseDto>> updateConsignment(
             @PathVariable("id") Long id,
-            @RequestBody UpdateConsignmentRequestDto requestDto,
+            @RequestBody Consignment requestEntity,
             @RequestParam("requestId") String requestId) {
 
         long startTime = System.currentTimeMillis();
@@ -449,15 +449,19 @@ public class ConsignmentController {
             String username = auth != null ? auth.getName() : "SYSTEM";
             LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] updateConsignment: usernameFromAuthHeader={}", requestId, username);
 
-            if (requestDto.getSender() == null && requestDto.getDestination() == null
-                    && (requestDto.getItems() == null || requestDto.getItems().isEmpty())) {
+            // Validate that at least one field is being updated
+            if (requestEntity.getSenderContact() == null &&
+                    requestEntity.getDestinationContact() == null &&
+                    (requestEntity.getItems() == null || requestEntity.getItems().isEmpty()) &&
+                    requestEntity.getConsignmentId() == null &&
+                    requestEntity.getCurrentLocationCode() == null) {
 
                 response.setResponseCode(HttpStatus.OK.value());
-                response.setResponseMessage("At least one of sender, destination, or items is required");
+                response.setResponseMessage("At least one of sender, destination, items, consignmentId, or locationCode is required");
                 response.setData(null);
 
             } else {
-                ConsignmentVo updated = service.updateConsignment(id, requestDto, requestId, username);
+                ConsignmentVo updated = service.updateConsignment(id, requestEntity, requestId, username);
 
                 if (updated == null) {
                     response.setResponseCode(HttpStatus.BAD_REQUEST.value());

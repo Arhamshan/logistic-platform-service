@@ -46,8 +46,4 @@ public interface ConsignmentRepository {
         return false;
     }
 
-    public default Boolean updateItems(List<Item> items, String username, String requestId){
-        return false;
-    }
-
     }

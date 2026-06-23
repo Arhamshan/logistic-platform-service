@@ -29,5 +29,5 @@ public interface ConsignmentService {
 
     ConsignmentVo getById(Long id, String requestId);
 
-    ConsignmentVo updateConsignment(Long id, UpdateConsignmentRequestDto requestDto, String requestId, String username);
+    ConsignmentVo updateConsignment(Long id, Consignment requestEntity, String requestId, String username);
 }

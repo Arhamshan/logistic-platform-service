@@ -157,4 +157,20 @@ public class ItemQueryUtil {
         query.append(" WHERE i.id = ? ");
         return query.toString();
     }
+
+    public static String updateItemQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" UPDATE \"Items\" ");
+        query.append(" SET item_id              = COALESCE(?, item_id), ");
+        query.append("     weight               = COALESCE(?, weight), ");
+        query.append("     height               = COALESCE(?, height), ");
+        query.append("     length               = COALESCE(?, length), ");
+        query.append("     width                = COALESCE(?, width), ");
+        query.append("     current_location_code = COALESCE(?, current_location_code), ");
+        query.append("     updated_date         = ?, ");
+        query.append("     updated_by           = ? ");
+        query.append(" WHERE id = ? ");
+
+        return query.toString();
+    }
 }

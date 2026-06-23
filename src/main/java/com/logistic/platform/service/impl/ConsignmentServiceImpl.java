@@ -403,7 +403,7 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
     @Override
     @Transactional
-    public ConsignmentVo updateConsignment(Long id, UpdateConsignmentRequestDto requestDto, String requestId, String username) {
+    public ConsignmentVo updateConsignment(Long id, Consignment requestEntity, String requestId, String username) {
 
         long startTime = System.currentTimeMillis();
 
@@ -421,29 +421,25 @@ public class ConsignmentServiceImpl implements ConsignmentService {
                 return null;
             }
 
+            ConsignmentVo existingVo = existing.get();
+
             // 2. Resolve updated contacts
             Contact senderContact = null;
             Contact destinationContact = null;
 
-            ConsignmentVo existingVo = existing.get();
-
-            if (requestDto.getSender() != null) {
-                Contact senderToUpdate = requestDto.getSender().getContact();
-
+            if (requestEntity.getSenderContact() != null) {
                 senderContact = contactService.updateContact(
                         existingVo.getSenderContactId(),
-                        senderToUpdate,
+                        requestEntity.getSenderContact(),
                         requestId,
                         username
                 );
             }
 
-            if (requestDto.getDestination() != null) {
-                Contact destToUpdate = requestDto.getDestination().getContact();
-
+            if (requestEntity.getDestinationContact() != null) {
                 destinationContact = contactService.updateContact(
                         existingVo.getDestinationContactId(),
-                        destToUpdate,
+                        requestEntity.getDestinationContact(),
                         requestId,
                         username
                 );
@@ -452,41 +448,42 @@ public class ConsignmentServiceImpl implements ConsignmentService {
             // 3. Build partial consignment for update
             Consignment toUpdate = new Consignment();
             toUpdate.setId(id);
-            toUpdate.setConsignmentId(requestDto.getConsignmentId());
-            toUpdate.setCurrentLocationCode(requestDto.getLocationCode());
+            toUpdate.setConsignmentId(requestEntity.getConsignmentId());
+            toUpdate.setCurrentLocationCode(requestEntity.getCurrentLocationCode());
             toUpdate.setUpdatedBy(username);
 
             // 4. Persist consignment contact changes
             writerRepository.updateConsignment(toUpdate, requestId);
 
             // 5. Update items if provided
-            if (requestDto.getItems() != null && !requestDto.getItems().isEmpty()) {
+            if (requestEntity.getItems() != null && !requestEntity.getItems().isEmpty()) {
 
-                List<Item> itemsToUpdates = requestDto.getItems().stream()
-                        .filter(dto -> dto.getId() != null) // identify by id
-                        .map(dto -> {
-                            Item item = new Item();
-                            item.setId(dto.getId());
-                            item.setItemId(dto.getItemId());
-                            item.setWeight(dto.getWeight());
-                            item.setHeight(dto.getHeight());
-                            item.setLength(dto.getLength());
-                            item.setWidth(dto.getWidth());
+                List<Item> itemsToUpdates = requestEntity.getItems().stream()
+                        .filter(item -> item.getId() != null) // identify by id
+                        .map(item -> {
+                            Item itemToUpdate = new Item();
+                            itemToUpdate.setId(item.getId());
+                            itemToUpdate.setItemId(item.getItemId());
+                            itemToUpdate.setWeight(item.getWeight());
+                            itemToUpdate.setHeight(item.getHeight());
+                            itemToUpdate.setLength(item.getLength());
+                            itemToUpdate.setWidth(item.getWidth());
 
-                            String locationToSet = dto.getCurrentLocationCode() != null
-                                    ? dto.getCurrentLocationCode()
-                                    : requestDto.getLocationCode();
+                            String locationToSet = item.getCurrentLocationCode() != null
+                                    ? item.getCurrentLocationCode()
+                                    : requestEntity.getCurrentLocationCode();
 
-                            item.setCurrentLocationCode(locationToSet);
-                            item.setUpdatedBy(username);
+                            itemToUpdate.setCurrentLocationCode(locationToSet);
+                            itemToUpdate.setUpdatedBy(username);
 
-                            return item;
+                            return itemToUpdate;
                         })
                         .collect(Collectors.toList());
 
                 if (!itemsToUpdates.isEmpty()) {
-                    LOGGER.info("DETAIL [SERVICE-LAYER] [RequestId={}] updateConsignment: updating {} items", requestId, itemsToUpdates.size());
-                    writerRepository.updateItems(itemsToUpdates, username, requestId);
+                    LOGGER.info("DETAIL [SERVICE-LAYER] [RequestId={}] updateConsignment: updating {} items",
+                            requestId, itemsToUpdates.size());
+                    itemService.updateItems(itemsToUpdates, username, requestId);
                 }
             }
 
