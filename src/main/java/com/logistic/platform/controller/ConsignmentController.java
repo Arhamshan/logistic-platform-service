@@ -2,6 +2,7 @@ package com.logistic.platform.controller;
 
 import com.logistic.common.dto.ResponseDto;
 import com.logistic.common.entity.Consignment;
+import com.logistic.common.entity.Item;
 import com.logistic.common.entity.Pod;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.dto.consignment.*;
@@ -434,7 +435,7 @@ public class ConsignmentController {
     @PutMapping("/{id}")
     public ResponseEntity<ResponseDto<UpdateConsignmentResponseDto>> updateConsignment(
             @PathVariable("id") Long id,
-            @RequestBody Consignment requestEntity,
+            @RequestBody UpdateConsignmentRequestDto requestDto,
             @RequestParam("requestId") String requestId) {
 
         long startTime = System.currentTimeMillis();
@@ -449,19 +450,43 @@ public class ConsignmentController {
             String username = auth != null ? auth.getName() : "SYSTEM";
             LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] updateConsignment: usernameFromAuthHeader={}", requestId, username);
 
-            // Validate that at least one field is being updated
-            if (requestEntity.getSenderContact() == null &&
-                    requestEntity.getDestinationContact() == null &&
-                    (requestEntity.getItems() == null || requestEntity.getItems().isEmpty()) &&
-                    requestEntity.getConsignmentId() == null &&
-                    requestEntity.getCurrentLocationCode() == null) {
+            if (requestDto.getSender() == null && requestDto.getDestination() == null
+                    && (requestDto.getItems() == null || requestDto.getItems().isEmpty())) {
 
                 response.setResponseCode(HttpStatus.OK.value());
-                response.setResponseMessage("At least one of sender, destination, items, consignmentId, or locationCode is required");
+                response.setResponseMessage("At least one of sender, destination, or items is required");
                 response.setData(null);
 
             } else {
-                ConsignmentVo updated = service.updateConsignment(id, requestEntity, requestId, username);
+                Consignment consignment = new Consignment();
+
+                consignment.setConsignmentId(requestDto.getConsignmentId());
+                consignment.setSenderContact(requestDto.getSender().getContact());
+                consignment.setDestinationContact(requestDto.getDestination().getContact());
+
+                List<Item> items = requestDto.getItems().stream()
+                        .map(dto -> {
+                            Item item = new Item();
+                            item.setId(dto.getId());
+                            item.setItemId(dto.getItemId());
+                            item.setWeight(dto.getWeight());
+                            item.setHeight(dto.getHeight());
+                            item.setLength(dto.getLength());
+                            item.setWidth(dto.getWidth());
+
+                            String locationToSet = dto.getCurrentLocationCode() != null
+                                    ? dto.getCurrentLocationCode()
+                                    : requestDto.getLocationCode();
+                            item.setCurrentLocationCode(locationToSet);
+
+                            item.setUpdatedBy(username);
+                            return item;
+                        })
+                        .collect(Collectors.toList());
+
+                consignment.setItems(items);
+
+                ConsignmentVo updated = service.updateConsignment(id, consignment, requestId, username);
 
                 if (updated == null) {
                     response.setResponseCode(HttpStatus.BAD_REQUEST.value());

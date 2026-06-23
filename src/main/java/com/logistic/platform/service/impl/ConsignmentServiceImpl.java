@@ -403,7 +403,7 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
     @Override
     @Transactional
-    public ConsignmentVo updateConsignment(Long id, Consignment requestEntity, String requestId, String username) {
+    public ConsignmentVo updateConsignment(Long id, Consignment consignment, String requestId, String username) {
 
         long startTime = System.currentTimeMillis();
 
@@ -427,19 +427,19 @@ public class ConsignmentServiceImpl implements ConsignmentService {
             Contact senderContact = null;
             Contact destinationContact = null;
 
-            if (requestEntity.getSenderContact() != null) {
+            if (consignment.getSenderContact() != null) {
                 senderContact = contactService.updateContact(
                         existingVo.getSenderContactId(),
-                        requestEntity.getSenderContact(),
+                        consignment.getSenderContact(),
                         requestId,
                         username
                 );
             }
 
-            if (requestEntity.getDestinationContact() != null) {
+            if (consignment.getDestinationContact() != null) {
                 destinationContact = contactService.updateContact(
                         existingVo.getDestinationContactId(),
-                        requestEntity.getDestinationContact(),
+                        consignment.getDestinationContact(),
                         requestId,
                         username
                 );
@@ -448,17 +448,17 @@ public class ConsignmentServiceImpl implements ConsignmentService {
             // 3. Build partial consignment for update
             Consignment toUpdate = new Consignment();
             toUpdate.setId(id);
-            toUpdate.setConsignmentId(requestEntity.getConsignmentId());
-            toUpdate.setCurrentLocationCode(requestEntity.getCurrentLocationCode());
+            toUpdate.setConsignmentId(consignment.getConsignmentId());
+            toUpdate.setCurrentLocationCode(consignment.getCurrentLocationCode());
             toUpdate.setUpdatedBy(username);
 
             // 4. Persist consignment contact changes
             writerRepository.updateConsignment(toUpdate, requestId);
 
             // 5. Update items if provided
-            if (requestEntity.getItems() != null && !requestEntity.getItems().isEmpty()) {
+            if (consignment.getItems() != null && !consignment.getItems().isEmpty()) {
 
-                List<Item> itemsToUpdates = requestEntity.getItems().stream()
+                List<Item> itemsToUpdates = consignment.getItems().stream()
                         .filter(item -> item.getId() != null) // identify by id
                         .map(item -> {
                             Item itemToUpdate = new Item();
@@ -471,7 +471,7 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
                             String locationToSet = item.getCurrentLocationCode() != null
                                     ? item.getCurrentLocationCode()
-                                    : requestEntity.getCurrentLocationCode();
+                                    : consignment.getCurrentLocationCode();
 
                             itemToUpdate.setCurrentLocationCode(locationToSet);
                             itemToUpdate.setUpdatedBy(username);
