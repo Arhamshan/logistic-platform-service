@@ -363,4 +363,31 @@ public class ItemServiceImpl implements ItemService {
 
         return items;
     }
+
+    @Override
+    @Transactional
+    public Boolean updateItems(List<Item> items, String username, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateItems: itemCount={}",
+                requestId, items.size());
+
+        Boolean isUpdated = Boolean.FALSE;
+
+        try {
+            isUpdated = writerRepository.updateItems(items, username, requestId);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateItems: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateItems: isUpdated={}|timeTaken={}",
+                    requestId, isUpdated, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return isUpdated;
+    }
 }

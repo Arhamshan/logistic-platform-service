@@ -2,6 +2,7 @@ package com.logistic.platform.controller;
 
 import com.logistic.common.dto.ResponseDto;
 import com.logistic.common.entity.Consignment;
+import com.logistic.common.entity.Item;
 import com.logistic.common.entity.Pod;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.dto.consignment.*;
@@ -55,6 +56,8 @@ public class ConsignmentController {
 
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = auth != null ? auth.getName() : "SYSTEM";
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] createConsignment: usernameFromAuthHeader={}", requestId, username);
 
             Consignment consignment = requestDto.getConsignment();
 
@@ -81,7 +84,7 @@ public class ConsignmentController {
                     response.setData(null);
 
                 } else {
-                    List<ItemProcessResultVo> results = service.save(consignment, requestId);
+                    List<ItemProcessResultVo> results = service.save(consignment, requestId, username);
 
                     if (results != null && !results.isEmpty() && results.get(0).getItemId() == null && results.get(0).getStatusCode() == 400) {
                         response.setResponseCode(HttpStatus.BAD_REQUEST.value());
@@ -423,6 +426,90 @@ public class ConsignmentController {
             response.setTimestamp(LocalDateTime.now());
 
             LOGGER.info("END [REST-LAYER] [RequestId={}] getConsignmentById: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseDto<UpdateConsignmentResponseDto>> updateConsignment(
+            @PathVariable("id") Long id,
+            @RequestBody UpdateConsignmentRequestDto requestDto,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] updateConsignment: id={}", requestId, id);
+
+        ResponseDto<UpdateConsignmentResponseDto> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = auth != null ? auth.getName() : "SYSTEM";
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] updateConsignment: usernameFromAuthHeader={}", requestId, username);
+
+            if (requestDto.getSender() == null && requestDto.getDestination() == null
+                    && (requestDto.getItems() == null || requestDto.getItems().isEmpty())) {
+
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("At least one of sender, destination, or items is required");
+                response.setData(null);
+
+            } else {
+                Consignment consignment = new Consignment();
+
+                consignment.setConsignmentId(requestDto.getConsignmentId());
+                consignment.setSenderContact(requestDto.getSender().getContact());
+                consignment.setDestinationContact(requestDto.getDestination().getContact());
+
+                List<Item> items = requestDto.getItems().stream()
+                        .map(dto -> {
+                            Item item = new Item();
+                            item.setId(dto.getId());
+                            item.setItemId(dto.getItemId());
+                            item.setWeight(dto.getWeight());
+                            item.setHeight(dto.getHeight());
+                            item.setLength(dto.getLength());
+                            item.setWidth(dto.getWidth());
+
+                            String locationToSet = dto.getCurrentLocationCode() != null
+                                    ? dto.getCurrentLocationCode()
+                                    : requestDto.getLocationCode();
+                            item.setCurrentLocationCode(locationToSet);
+
+                            item.setUpdatedBy(username);
+                            return item;
+                        })
+                        .collect(Collectors.toList());
+
+                consignment.setItems(items);
+
+                ConsignmentVo updated = service.updateConsignment(id, consignment, requestId, username);
+
+                if (updated == null) {
+                    response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                    response.setResponseMessage("Consignment not found for id " + id);
+                    response.setData(null);
+
+                } else {
+                    response.setResponseCode(HttpStatus.OK.value());
+                    response.setResponseMessage("Consignment updated successfully.");
+                    response.setData(new UpdateConsignmentResponseDto(updated));
+                }
+            }
+
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to update consignment.");
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] updateConsignment: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] updateConsignment: response={}|timeTaken={}",
                     requestId, response, CommonUtils.getExecutionTime(startTime));
         }
 

@@ -28,7 +28,7 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     @Transactional
-    public Contact createContact(Contact contact, String requestId) {
+    public Contact createContact(Contact contact, String requestId, String username) {
 
         long startTime = System.currentTimeMillis();
 
@@ -42,12 +42,8 @@ public class ContactServiceImpl implements ContactService {
             contact.setCreatedDate(now);
             contact.setUpdatedDate(now);
 
-            if (contact.getCreatedBy() == null) {
-                contact.setCreatedBy("system");
-            }
-            if (contact.getUpdatedBy() == null) {
-                contact.setUpdatedBy("system");
-            }
+            contact.setCreatedBy(username);
+            contact.setUpdatedBy(username);
 
             savedContact = writerRepository.save(contact, requestId);
 
@@ -76,5 +72,35 @@ public class ContactServiceImpl implements ContactService {
                 requestId, CommonUtils.getExecutionTime(startTime));
 
         return contact;
+    }
+
+    @Override
+    @Transactional
+    public Contact updateContact(Long contactId, Contact contact, String requestId, String username) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateContact: contactId={}",
+                requestId, contactId);
+
+        Contact updatedContact = null;
+
+        try {
+            contact.setId(contactId);
+            contact.setUpdatedDate(LocalDateTime.now());
+            contact.setUpdatedBy(username);
+
+            updatedContact = writerRepository.update(contact, requestId);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateContact: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+        }
+
+        LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateContact: contactId={}|timeTaken={}",
+                requestId, contactId, CommonUtils.getExecutionTime(startTime));
+
+        return updatedContact;
     }
 }

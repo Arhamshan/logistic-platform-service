@@ -27,4 +27,6 @@ public interface ItemService {
 
     List<Item> getByConsId(Long consId, String requestId);
 
+    Boolean updateItems(List<Item> items, String username, String requestId);
+
 }
