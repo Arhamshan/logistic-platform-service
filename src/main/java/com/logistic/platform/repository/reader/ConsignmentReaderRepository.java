@@ -218,6 +218,13 @@ public class ConsignmentReaderRepository implements ConsignmentRepository {
                 result.setConsignmentId((String) rows.get(0).get("consignment_id"));
                 result.setStatus((String) rows.get(0).get("status"));
 
+                result.setSenderContactId(rows.get(0).get("sender_contact_id") != null
+                        ? ((Number) rows.get(0).get("sender_contact_id")).longValue()
+                        : null);
+                result.setDestinationContactId(rows.get(0).get("destination_contact_id") != null
+                        ? ((Number) rows.get(0).get("destination_contact_id")).longValue()
+                        : null);
+
                 List<ConsignmentItemVo> items = new ArrayList<>();
                 for (Map<String, Object> row : rows) {
                     if (row.get("item_pk") != null) {

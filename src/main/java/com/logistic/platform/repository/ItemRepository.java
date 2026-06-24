@@ -39,4 +39,8 @@ public interface ItemRepository {
     public default List<Item> findByConsId(Long consId, String requestId){
         return null;
     }
+
+    public default Boolean updateItems(List<Item> items, String username, String requestId){
+        return false;
+    }
 }

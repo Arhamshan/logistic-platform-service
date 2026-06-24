@@ -2,6 +2,7 @@ package com.logistic.platform.repository;
 
 
 import com.logistic.common.entity.Consignment;
+import com.logistic.common.entity.Item;
 import com.logistic.platform.dto.consignment.GetConsignmentResponseDto;
 import com.logistic.platform.vo.ConsignmentVo;
 import com.logistic.platform.vo.SummaryVo;
@@ -41,5 +42,8 @@ public interface ConsignmentRepository {
         return Optional.empty();
     }
 
+    public default Boolean updateConsignment(Consignment consignment, String requestId){
+        return false;
+    }
 
     }

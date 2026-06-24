@@ -3,18 +3,23 @@ package com.logistic.platform.repository.writer;
 import com.logistic.common.entity.Item;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.repository.ItemRepository;
+import com.logistic.platform.util.ConsignmentQueryUtil;
 import com.logistic.platform.util.ItemQueryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 @Repository
@@ -110,6 +115,58 @@ public class ItemWriterRepository implements ItemRepository {
 
             LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] updateItemStatusAndLocation: id={}|timeTaken={}",
                     requestId, item.getId(), CommonUtils.getExecutionTime(startTime));
+        }
+
+        return isUpdated;
+    }
+
+    @Override
+    public Boolean updateItems(List<Item> items, String username, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] updateItems: itemCount={}",
+                requestId, items.size());
+
+        Boolean isUpdated = Boolean.FALSE;
+
+        try {
+            String sql = ItemQueryUtil.updateItemQuery();
+            LocalDateTime now = LocalDateTime.now();
+
+            int[] rowsAffected = jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+                @Override
+                public void setValues(PreparedStatement ps, int i) throws SQLException {
+                    Item item = items.get(i);
+                    ps.setObject(1, item.getItemId());
+                    ps.setObject(2, item.getWeight());
+                    ps.setObject(3, item.getHeight());
+                    ps.setObject(4, item.getLength());
+                    ps.setObject(5, item.getWidth());
+                    ps.setObject(6, item.getCurrentLocationCode());
+                    ps.setObject(7, now);
+                    ps.setString(8, username);
+                    ps.setObject(9, item.getId());
+                }
+
+                @Override
+                public int getBatchSize() {
+                    return items.size();
+                }
+            });
+
+            // Consider updated if at least one row was affected
+            isUpdated = Arrays.stream(rowsAffected).anyMatch(r -> r > 0);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] updateItems: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to update items", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] updateItems: isUpdated={}|timeTaken={}",
+                    requestId, isUpdated, CommonUtils.getExecutionTime(startTime));
         }
 
         return isUpdated;

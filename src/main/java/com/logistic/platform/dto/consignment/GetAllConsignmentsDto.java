@@ -24,6 +24,10 @@ public class GetAllConsignmentsDto {
 
     private String senderContactName;
 
+    private String senderContactEmail;
+
+    private String senderContactPhone;
+
     private String senderContactAddressLine1;
 
     private String senderContactAddressLine2;
@@ -37,6 +41,10 @@ public class GetAllConsignmentsDto {
     private String senderContactCountry;
 
     private String destinationContactName;
+
+    private String destinationContactEmail;
+
+    private String destinationContactPhone;
 
     private String destinationContactAddressLine1;
 
@@ -60,6 +68,8 @@ public class GetAllConsignmentsDto {
         this.status = String.valueOf(consignment.getStatus());
         this.locationCode = consignment.getCurrentLocationCode();
         this.senderContactName = consignment.getSenderContact().getName();
+        this.senderContactEmail = consignment.getSenderContact().getEmail();
+        this.senderContactPhone = consignment.getSenderContact().getPhone();
         this.senderContactAddressLine1 = consignment.getSenderContact().getAddressLine1();
         this.senderContactAddressLine2 = consignment.getSenderContact().getAddressLine2();
         this.senderContactState = consignment.getSenderContact().getState();
@@ -67,6 +77,8 @@ public class GetAllConsignmentsDto {
         this.senderContactPostcode = consignment.getSenderContact().getPostcode();
         this.senderContactCountry = consignment.getSenderContact().getCountry();
         this.destinationContactName = consignment.getDestinationContact().getName();
+        this.destinationContactEmail = consignment.getDestinationContact().getEmail();
+        this.destinationContactPhone = consignment.getDestinationContact().getPhone();
         this.destinationContactAddressLine1 = consignment.getDestinationContact().getAddressLine1();
         this.destinationContactAddressLine2 = consignment.getDestinationContact().getAddressLine2();
         this.destinationContactState = consignment.getDestinationContact().getState();

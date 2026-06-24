@@ -51,20 +51,18 @@ public class ContactQueryUtil {
 
     public static String updateContactQuery() {
         StringBuilder query = new StringBuilder();
-        query.append(" UPDATE \"Contacts\" SET ");
-        query.append("     name = ?, ");
-        query.append("     email = ?, ");
-        query.append("     phone = ?, ");
+        query.append(" UPDATE \"Contacts\" ");
+        query.append(" SET name          = ?, ");
+        query.append("     email         = ?, ");
+        query.append("     phone         = ?, ");
         query.append("     address_line1 = ?, ");
         query.append("     address_line2 = ?, ");
-        query.append("     state = ?, ");
-        query.append("     suburb = ?, ");
-        query.append("     postcode = ?, ");
-        query.append("     country = ?, ");
-        query.append("     latitude = ?, ");
-        query.append("     longitude = ?, ");
-        query.append("     updated_date = ?, ");
-        query.append("     updated_by = ? ");
+        query.append("     state         = ?, ");
+        query.append("     suburb        = ?, ");
+        query.append("     postcode      = ?, ");
+        query.append("     country       = ?, ");
+        query.append("     updated_date  = ?, ");
+        query.append("     updated_by    = ? ");
         query.append(" WHERE id = ? ");
         return query.toString();
     }

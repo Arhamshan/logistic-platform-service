@@ -20,6 +20,12 @@ public class ConsignmentVo {
     @JsonProperty("createdDate")
     private LocalDateTime createdDate;
 
+    @JsonProperty("senderContactId")
+    private Long senderContactId;
+
+    @JsonProperty("destinationContactId")
+    private Long destinationContactId;
+
     @JsonProperty("items")
     private List<ConsignmentItemVo> items;
 }
