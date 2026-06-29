@@ -3,7 +3,9 @@ package com.logistic.platform.service.impl;
 import com.logistic.common.entity.Consignment;
 import com.logistic.common.entity.Event;
 import com.logistic.common.entity.Item;
+import com.logistic.common.enums.ConsignmentStatus;
 import com.logistic.common.enums.EventType;
+import com.logistic.common.enums.ItemStatus;
 import com.logistic.platform.repository.reader.EventReaderRepository;
 import com.logistic.platform.repository.writer.EventWriterRepository;
 import com.logistic.platform.service.ConsignmentService;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -145,12 +148,24 @@ public class EventServiceImpl implements EventService {
     }
 
     private void updateConsignment(Consignment consignment, Event event, String requestId) {
-        consignment.setStatus(ConsignmentUtil.mapConsignmentStatus(EventType.valueOf(event.getEventType().name())));
+
+        // Fetch ALL items of this consignment to derive correct status
+        List<Item> allItems = itemService.getByConsId(consignment.getId(), requestId);
+
+        // Collect current statuses — updateItem() already persisted the triggering item's new status
+        List<ItemStatus> allStatuses = allItems.stream()
+                .map(Item::getStatus)
+                .collect(Collectors.toList());
+
+        // Derive — this is in ConsignmentUtil which is already imported in this file
+        ConsignmentStatus derivedStatus =
+                ConsignmentUtil.deriveConsignmentStatusFromItems(allStatuses);
+
+        consignment.setStatus(derivedStatus);
         consignment.setUpdatedDate(LocalDateTime.now());
 
         consignmentService.updateStatus(consignment, requestId);
     }
-
     // event tracking #97
     @Override
     public List<TrackingEventVo> getTrackingEvents(Long itemId, String requestId) {
