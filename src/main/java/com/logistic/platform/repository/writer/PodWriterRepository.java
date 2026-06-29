@@ -58,6 +58,7 @@ public class PodWriterRepository implements PodRepository {
                 ps.setString(9, pod.getCreatedBy());
                 ps.setTimestamp(10, Timestamp.valueOf(pod.getUpdatedDate()));
                 ps.setString(11, pod.getUpdatedBy());
+
                 return ps;
             }, keyHolder);
 

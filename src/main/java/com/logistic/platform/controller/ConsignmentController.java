@@ -23,8 +23,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -242,16 +244,20 @@ public class ConsignmentController {
             pod.setReceiverContact(requestDto.getReceiverContact());
             pod.setRemarks(requestDto.getRemarks());
             pod.setPodPath(requestDto.getPodImage());
-            pod.setDeliveredAt(requestDto.getReceivedAt() != null
-                    ? OffsetDateTime.parse(requestDto.getReceivedAt()).toLocalDateTime()
-                    : null);
-            pod.setDeliveredBy(null);
+            pod.setDeliveredBy(auth.getName());
             pod.setCreatedDate(LocalDateTime.now());
             pod.setCreatedBy(auth.getName());
             pod.setUpdatedDate(LocalDateTime.now());
             pod.setUpdatedBy(auth.getName());
 
-            Boolean saved = podService.savePod(consignmentId, itemId, pod, requestId);
+            // 1. Parse the UTC string into an Instant
+            Instant instant = Instant.parse(requestDto.getReceivedAt());
+            // 2. Convert to LocalDateTime using the system's default timezone
+            LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+
+            pod.setDeliveredAt(localDateTime);
+
+            Boolean saved = podService.savePod(consignmentId, itemId, pod, requestDto.getPodImage(),  requestId);
 
             if (Boolean.FALSE.equals(saved)) {
                 response.setResponseCode(HttpStatus.BAD_REQUEST.value());

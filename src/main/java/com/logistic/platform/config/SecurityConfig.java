@@ -73,6 +73,7 @@ public class SecurityConfig {
                         .requestMatchers("/v1/auth/**").permitAll()
                         .requestMatchers("/v1/user/**").permitAll()
                         .requestMatchers("/assets/**").permitAll()
+                        .requestMatchers("/v1/pod-images/**").permitAll()
                         .requestMatchers("/login", "/logout").permitAll()
                         .requestMatchers("/*.css", "/*.js", "/*.ico").permitAll()
                         .requestMatchers("/v1/**").hasAnyRole(
