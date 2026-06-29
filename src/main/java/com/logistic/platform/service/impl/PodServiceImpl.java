@@ -52,7 +52,7 @@ public class PodServiceImpl implements PodService {
         try {
             // 1. Validate item belongs to consignment
             Item item = itemService.getItemByConsignmentIdAndItemId(
-                    consignmentId, "IT-100010012", requestId);
+                    consignmentId, itemId, requestId);
 
             if (item == null) {
                 LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] savePod: item not found for consignmentId={}|itemId={}",
