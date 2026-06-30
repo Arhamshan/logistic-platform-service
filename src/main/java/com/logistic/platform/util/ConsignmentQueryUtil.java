@@ -45,11 +45,34 @@ public class ConsignmentQueryUtil {
     public static String findByConsignmentIdQuery() {
         StringBuilder query = new StringBuilder();
         query.append(" SELECT ");
-        query.append("     id, ");
-        query.append("     consignment_id, ");
-        query.append("     status ");
-        query.append(" FROM \"Consignments\" ");
-        query.append(" WHERE consignment_id = ? ");
+        query.append("     c.id, ");
+        query.append("     c.consignment_id, ");
+        query.append("     c.status, ");
+
+        query.append("     sc.name             AS sender_name, ");
+        query.append("     sc.email            AS sender_email, ");
+        query.append("     sc.phone            AS sender_phone, ");
+        query.append("     sc.address_line1    AS sender_address_line1, ");
+        query.append("     sc.address_line2    AS sender_address_line2, ");
+        query.append("     sc.state            AS sender_state, ");
+        query.append("     sc.suburb           AS sender_suburb, ");
+        query.append("     sc.postcode         AS sender_postcode, ");
+        query.append("     sc.country          AS sender_country, ");
+
+        query.append("     dc.name             AS dest_name, ");
+        query.append("     dc.email            AS dest_email, ");
+        query.append("     dc.phone            AS dest_phone, ");
+        query.append("     dc.address_line1    AS dest_address_line1, ");
+        query.append("     dc.address_line2    AS dest_address_line2, ");
+        query.append("     dc.state            AS dest_state, ");
+        query.append("     dc.suburb           AS dest_suburb, ");
+        query.append("     dc.postcode         AS dest_postcode, ");
+        query.append("     dc.country          AS dest_country ");
+
+        query.append(" FROM \"Consignments\" c ");
+        query.append(" LEFT JOIN \"Contacts\" sc ON c.sender_contact_id = sc.id ");
+        query.append(" LEFT JOIN \"Contacts\" dc ON c.destination_contact_id = dc.id ");
+        query.append(" WHERE c.consignment_id = ? ");
 
         return query.toString();
     }
