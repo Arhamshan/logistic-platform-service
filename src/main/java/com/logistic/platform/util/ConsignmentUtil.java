@@ -44,58 +44,43 @@ public class ConsignmentUtil {
         }
     }
 
-    /**
-     * Derives the consignment-level status based on ALL item statuses.
-     *
-     * Rules (evaluated in priority order):
-     *  1. If all items share the same status → direct map to that consignment status.
-     *  2. If any item is DELIVERED but not all → PARTIALLY_DELIVERED.
-     *  3. If any item is OUT_FOR_DELIVERY / IN_TRANSIT / PICKED_UP but not all → PARTIALLY_PICKED_UP.
-     *  4. Fallback → BOOKED.
-     *
-     * @param itemStatuses list of current statuses for every item in the consignment
-     * @return the derived ConsignmentStatus
-     */
     public static ConsignmentStatus deriveConsignmentStatusFromItems(List<ItemStatus> itemStatuses) {
 
         if (itemStatuses == null || itemStatuses.isEmpty()) {
             return ConsignmentStatus.BOOKED;
         }
 
-        Set<ItemStatus> distinctStatuses = itemStatuses.stream()
-                .collect(Collectors.toSet());
+        int total = itemStatuses.size();
 
-        // Rule 1 — All items have the same status
-        if (distinctStatuses.size() == 1) {
-            ItemStatus singleStatus = distinctStatuses.iterator().next();
-            switch (singleStatus) {
-                case BOOKED:            return ConsignmentStatus.BOOKED;
-                case PICKED_UP:         return ConsignmentStatus.PICKED_UP;
-                case IN_TRANSIT:        return ConsignmentStatus.IN_TRANSIT;
-                case OUT_FOR_DELIVERY:  return ConsignmentStatus.OUT_FOR_DELIVERY;
-                case DELIVERED:         return ConsignmentStatus.DELIVERED;
-            }
-        }
+        long booked    = count(itemStatuses, ItemStatus.BOOKED);
+        long pickedUp  = count(itemStatuses, ItemStatus.PICKED_UP);
+        long inTransit = count(itemStatuses, ItemStatus.IN_TRANSIT);
+        long outForDel = count(itemStatuses, ItemStatus.OUT_FOR_DELIVERY);
+        long delivered = count(itemStatuses, ItemStatus.DELIVERED);
 
-        // Rule 2 — At least one item DELIVERED but not all
-        boolean anyDelivered = itemStatuses.stream()
-                .anyMatch(s -> s == ItemStatus.DELIVERED);
+        // ── Rule 1: uniform status — direct map ──
+        if (delivered == total) return ConsignmentStatus.DELIVERED;
+        if (outForDel == total) return ConsignmentStatus.OUT_FOR_DELIVERY;
+        if (inTransit == total) return ConsignmentStatus.IN_TRANSIT;
+        if (pickedUp  == total) return ConsignmentStatus.PICKED_UP;
+        if (booked    == total) return ConsignmentStatus.BOOKED;
 
-        if (anyDelivered) {
-            return ConsignmentStatus.PARTIALLY_DELIVERED;
-        }
+        // ── Rule 2: any DELIVERED but not all → PARTIALLY_DELIVERED ──
+        // (delivered takes priority — it's the most "final" state a client cares about)
+        if (delivered > 0) return ConsignmentStatus.PARTIALLY_DELIVERED;
 
-        // Rule 3 — At least one item picked up / in-transit / out-for-delivery but not all
-        boolean anyInProgress = itemStatuses.stream()
-                .anyMatch(s -> s == ItemStatus.PICKED_UP
-                        || s == ItemStatus.IN_TRANSIT
-                        || s == ItemStatus.OUT_FOR_DELIVERY);
+        // ── Rule 3: furthest-along progress state, mixed but none delivered yet ──
+        // Walk the pipeline from the end backwards — whichever stage has at least
+        // one item AND isn't the full set, becomes the partial status.
+        if (outForDel > 0) return ConsignmentStatus.PARTIALLY_OUT_FOR_DELIVERY;
+        if (inTransit > 0) return ConsignmentStatus.PARTIALLY_IN_TRANSIT;
+        if (pickedUp  > 0) return ConsignmentStatus.PARTIALLY_PICKED_UP;
 
-        if (anyInProgress) {
-            return ConsignmentStatus.PARTIALLY_PICKED_UP;
-        }
-
-        // Rule 4 — Fallback
+        // ── Fallback ──
         return ConsignmentStatus.BOOKED;
+    }
+
+    private static long count(List<ItemStatus> statuses, ItemStatus target) {
+        return statuses.stream().filter(s -> s == target).count();
     }
 }
