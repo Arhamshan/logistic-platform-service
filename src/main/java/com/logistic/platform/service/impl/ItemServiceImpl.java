@@ -3,6 +3,7 @@ package com.logistic.platform.service.impl;
 import com.logistic.common.entity.Consignment;
 import com.logistic.common.entity.Event;
 import com.logistic.common.entity.Item;
+import com.logistic.common.enums.ConsignmentStatus;
 import com.logistic.common.enums.EventType;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ItemServiceImpl implements ItemService {
@@ -311,11 +313,23 @@ public class ItemServiceImpl implements ItemService {
             isItemUpdated = writerRepository.updateItemStatusAndLocation(item, requestId);
 
             if (isItemUpdated) {
-                // 4. Update consignment status
+                // 4. Derive consignment status from ALL items (supports partial statuses)
                 Consignment consignment = item.getConsignment();
 
                 if (consignment != null) {
-                    consignment.setStatus(ConsignmentUtil.mapConsignmentStatus(eventType));
+                    // Fetch every item that belongs to this consignment
+                    List<Item> allItems = getByConsId(consignment.getId(), requestId);
+
+                    // Collect their current statuses (the updated item is already persisted)
+                    List<ItemStatus> allStatuses = allItems.stream()
+                            .map(Item::getStatus)
+                            .collect(Collectors.toList());
+
+                    // Derive the correct consignment status (full or partial)
+                    ConsignmentStatus derivedStatus =
+                            ConsignmentUtil.deriveConsignmentStatusFromItems(allStatuses);
+
+                    consignment.setStatus(derivedStatus);
                     consignment.setUpdatedDate(LocalDateTime.now());
                     consignment.setUpdatedBy(username);
 
