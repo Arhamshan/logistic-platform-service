@@ -91,8 +91,34 @@ public class ConsignmentReaderRepository implements ConsignmentRepository {
             result = jdbcTemplate.query(sql, new Object[]{consignmentId},
                     (rs, rowNum) -> {
                         Consignment consignment = new Consignment();
+                        consignment.setId(rs.getLong("id"));
                         consignment.setConsignmentId(rs.getString("consignment_id"));
                         consignment.setStatus(ConsignmentStatus.valueOf(rs.getString("status")));
+
+                        Contact sender = new Contact();
+                        sender.setName(rs.getString("sender_name"));
+                        sender.setEmail(rs.getString("sender_email"));
+                        sender.setPhone(rs.getString("sender_phone"));
+                        sender.setAddressLine1(rs.getString("sender_address_line1"));
+                        sender.setAddressLine2(rs.getString("sender_address_line2"));
+                        sender.setState(rs.getString("sender_state"));
+                        sender.setSuburb(rs.getString("sender_suburb"));
+                        sender.setPostcode(rs.getString("sender_postcode"));
+                        sender.setCountry(rs.getString("sender_country"));
+                        consignment.setSenderContact(sender);
+
+                        Contact destination = new Contact();
+                        destination.setName(rs.getString("dest_name"));
+                        destination.setEmail(rs.getString("dest_email"));
+                        destination.setPhone(rs.getString("dest_phone"));
+                        destination.setAddressLine1(rs.getString("dest_address_line1"));
+                        destination.setAddressLine2(rs.getString("dest_address_line2"));
+                        destination.setState(rs.getString("dest_state"));
+                        destination.setSuburb(rs.getString("dest_suburb"));
+                        destination.setPostcode(rs.getString("dest_postcode"));
+                        destination.setCountry(rs.getString("dest_country"));
+                        consignment.setDestinationContact(destination);
+
                         return consignment;
                     });
 

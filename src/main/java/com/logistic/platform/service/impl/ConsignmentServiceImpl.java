@@ -247,6 +247,34 @@ public class ConsignmentServiceImpl implements ConsignmentService {
             result.setConsignmentId(consignment.getConsignmentId());
             result.setStatus(consignment.getStatus().name());
 
+            // ── Sender contact ──
+            if (consignment.getSenderContact() != null) {
+                Contact sender = consignment.getSenderContact();
+                result.setSenderContactName(sender.getName());
+                result.setSenderContactEmail(sender.getEmail());
+                result.setSenderContactPhone(sender.getPhone());
+                result.setSenderContactAddressLine1(sender.getAddressLine1());
+                result.setSenderContactAddressLine2(sender.getAddressLine2());
+                result.setSenderContactState(sender.getState());
+                result.setSenderContactSuburb(sender.getSuburb());
+                result.setSenderContactPostcode(sender.getPostcode());
+                result.setSenderContactCountry(sender.getCountry());
+            }
+
+            // ── Destination contact ──
+            if (consignment.getDestinationContact() != null) {
+                Contact destination = consignment.getDestinationContact();
+                result.setDestinationContactName(destination.getName());
+                result.setDestinationContactEmail(destination.getEmail());
+                result.setDestinationContactPhone(destination.getPhone());
+                result.setDestinationContactAddressLine1(destination.getAddressLine1());
+                result.setDestinationContactAddressLine2(destination.getAddressLine2());
+                result.setDestinationContactState(destination.getState());
+                result.setDestinationContactSuburb(destination.getSuburb());
+                result.setDestinationContactPostcode(destination.getPostcode());
+                result.setDestinationContactCountry(destination.getCountry());
+            }
+
             // item Tracking part
             List<TrackingItemVo> trackingItems = itemService.getTrackingItems(consignmentId, requestId);
 
