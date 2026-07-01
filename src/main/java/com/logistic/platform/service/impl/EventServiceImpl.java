@@ -123,7 +123,7 @@ public class EventServiceImpl implements EventService {
             Consignment consignment = item.getConsignment();
 
             // 8. Update Consignment
-            updateConsignment(consignment, event, requestId);
+            updateConsignment(consignment, item, requestId);
 
         }catch (Exception e) {
 
@@ -147,14 +147,16 @@ public class EventServiceImpl implements EventService {
         itemService.updateStatusAndLocation(item, requestId);
     }
 
-    private void updateConsignment(Consignment consignment, Event event, String requestId) {
+    private void updateConsignment(Consignment consignment, Item updatedItem, String requestId) {
 
         // Fetch ALL items of this consignment to derive correct status
         List<Item> allItems = itemService.getByConsId(consignment.getId(), requestId);
 
         // Collect current statuses — updateItem() already persisted the triggering item's new status
         List<ItemStatus> allStatuses = allItems.stream()
-                .map(Item::getStatus)
+                .map(it -> it.getId().equals(updatedItem.getId())
+                        ? updatedItem.getStatus()
+                        : it.getStatus())
                 .collect(Collectors.toList());
 
         // Derive — this is in ConsignmentUtil which is already imported in this file
