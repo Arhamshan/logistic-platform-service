@@ -3,9 +3,12 @@ package com.logistic.platform.controller;
 import com.logistic.common.dto.ResponseDto;
 import com.logistic.common.entity.Event;
 import com.logistic.common.entity.Item;
+import com.logistic.common.entity.Pod;
 import com.logistic.common.enums.EventType;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.platform.dto.pod.PodResponseDto;
+import com.logistic.platform.service.PodService;
 import com.logistic.platform.util.ConsignmentUtil;
 import com.logistic.platform.dto.item.ScanItemRequestDto;
 import com.logistic.platform.service.EventService;
@@ -28,10 +31,12 @@ public class ItemController {
 
     private final ItemService itemService;
     private final EventService eventService;
+    private final PodService podService;
 
-    public ItemController(ItemService itemService, EventService eventService) {
+    public ItemController(ItemService itemService, EventService eventService, PodService podService) {
         this.itemService = itemService;
         this.eventService = eventService;
+        this.podService = podService;
     }
 
     @PostMapping("/scan")
@@ -129,6 +134,50 @@ public class ItemController {
         } finally {
             response.setTimestamp(LocalDateTime.now());
             LOGGER.info("END [REST-LAYER] [RequestId={}] updateStatus: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{consItemId}/pod")
+    public ResponseEntity<ResponseDto<PodResponseDto>> getPod(
+            @PathVariable("consItemId") Long consItemId,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] getPod: consItemId={}",
+                requestId, consItemId);
+
+        ResponseDto<PodResponseDto> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            // Service returns Pod entity — DTO built here at REST boundary only
+            Pod pod = podService.getPodByItemId(consItemId, requestId);
+
+            if (pod == null) {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Pod not found");
+                response.setData(null);
+
+            } else {
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Pod retrieved successfully");
+                response.setData(new PodResponseDto(pod));
+            }
+
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to get pod");
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] getPod: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] getPod: response={}|timeTaken={}",
                     requestId, response, CommonUtils.getExecutionTime(startTime));
         }
 

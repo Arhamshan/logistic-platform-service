@@ -36,4 +36,17 @@ public class PodQueryUtil {
         query.append(" )");
         return query.toString();
     }
+
+    public static String findByConsItemIdQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT ");
+        query.append("     id, ");
+        query.append("     received_by, ");
+        query.append("     receiver_contact, ");
+        query.append("     pod_path, ");
+        query.append("     delivered_by ");
+        query.append(" FROM \"Pods\" ");
+        query.append(" WHERE cons_item_id = ? ");
+        return query.toString();
+    }
 }
