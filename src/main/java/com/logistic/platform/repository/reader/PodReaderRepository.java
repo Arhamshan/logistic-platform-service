@@ -57,7 +57,7 @@ public class PodReaderRepository {
 
         } finally {
             LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findByConsItemId: found={}|timeTaken={}",
-                    requestId, result != null, CommonUtils.getExecutionTime(startTime));
+                    requestId, CommonUtils.convertToString(result), CommonUtils.getExecutionTime(startTime));
         }
 
         return result;
