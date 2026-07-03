@@ -3,6 +3,8 @@ package com.logistic.platform.service.impl;
 import com.logistic.common.entity.Item;
 import com.logistic.common.entity.Pod;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.platform.dto.pod.PodResponseDto;
+import com.logistic.platform.repository.reader.PodReaderRepository;
 import com.logistic.platform.repository.writer.PodWriterRepository;
 import com.logistic.platform.service.ItemService;
 import com.logistic.platform.service.PodService;
@@ -30,10 +32,12 @@ public class PodServiceImpl implements PodService {
     private String podGetUrl;
 
     private final PodWriterRepository podWriterRepository;
+    private final PodReaderRepository podReaderRepository;
     private final ItemService itemService;
 
     public PodServiceImpl(PodWriterRepository podWriterRepository,
-                          ItemService itemService) {
+                          ItemService itemService, PodReaderRepository podReaderRepository) {
+        this.podReaderRepository = podReaderRepository;
         this.podWriterRepository = podWriterRepository;
         this.itemService = itemService;
     }
@@ -104,5 +108,36 @@ public class PodServiceImpl implements PodService {
 
         // return image path
         return "/" + podGetUrl + "/" + fileName;
+    }
+
+    @Override
+    public Pod getPodByItemId(Long consItemId, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getPodByItemId: consItemId={}",
+                requestId, consItemId);
+
+        Pod result = null;
+
+        try {
+            result = podReaderRepository.findByConsItemId(consItemId, requestId);
+
+            if (result == null) {
+                LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getPodByItemId: Pod not found for consItemId={}",
+                        requestId, consItemId);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getPodByItemId: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getPodByItemId: found={}|timeTaken={}",
+                    requestId, result != null, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
     }
 }
