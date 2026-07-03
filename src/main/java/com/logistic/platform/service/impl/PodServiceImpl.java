@@ -121,19 +121,11 @@ public class PodServiceImpl implements PodService {
         Pod result = null;
 
         try {
-            // Repository returns DTO — convert to entity here before exposing to upper layers
-            PodResponseDto podDto = podReaderRepository.findByConsItemId(consItemId, requestId);
+            result = podReaderRepository.findByConsItemId(consItemId, requestId);
 
-            if (podDto == null) {
+            if (result == null) {
                 LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getPodByItemId: Pod not found for consItemId={}",
                         requestId, consItemId);
-            } else {
-                result = new Pod();
-                result.setId(podDto.getId());
-                result.setReceivedBy(podDto.getReceivedBy());
-                result.setReceiverContact(podDto.getReceiverContact());
-                result.setPodPath(podDto.getPodPath());
-                result.setDeliveredBy(podDto.getDeliveredBy());
             }
 
         } catch (Exception e) {

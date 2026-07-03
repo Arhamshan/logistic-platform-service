@@ -1,8 +1,7 @@
 package com.logistic.platform.repository.reader;
 
-import com.logistic.platform.dto.pod.PodResponseDto;
+import com.logistic.common.entity.Pod;
 import com.logistic.common.util.CommonUtils;
-import com.logistic.platform.repository.PodRepository;
 import com.logistic.platform.util.PodQueryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public class PodReaderRepository implements PodRepository {
+public class PodReaderRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PodReaderRepository.class);
 
@@ -24,29 +23,29 @@ public class PodReaderRepository implements PodRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public PodResponseDto findByConsItemId(Long consItemId, String requestId) {
+    public Pod findByConsItemId(Long consItemId, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
         LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findByConsItemId: consItemId={}",
                 requestId, consItemId);
 
-        PodResponseDto result = null;
+        Pod result = null;
 
         try {
             String sql = PodQueryUtil.findByConsItemIdQuery();
 
-            List<PodResponseDto> rows = jdbcTemplate.query(
+            List<Pod> rows = jdbcTemplate.query(
                     sql,
                     new Object[]{consItemId},
                     (rs, rowNum) -> {
-                        PodResponseDto dto = new PodResponseDto();
-                        dto.setId(rs.getLong("id"));
-                        dto.setReceivedBy(rs.getString("received_by"));
-                        dto.setReceiverContact(rs.getString("receiver_contact"));
-                        dto.setPodPath(rs.getString("pod_path"));
-                        dto.setDeliveredBy(rs.getString("delivered_by"));
-                        return dto;
+                        Pod pod = new Pod();
+                        pod.setId(rs.getLong("id"));
+                        pod.setReceivedBy(rs.getString("received_by"));
+                        pod.setReceiverContact(rs.getString("receiver_contact"));
+                        pod.setPodPath(rs.getString("pod_path"));
+                        pod.setDeliveredBy(rs.getString("delivered_by"));
+                        return pod;
                     });
 
             result = rows.isEmpty() ? null : rows.get(0);
