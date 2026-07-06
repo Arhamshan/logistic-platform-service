@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class TrackingItemResponseDto {
 
+    private Long id;
+
     private String itemId;
 
     private String status;
@@ -36,6 +38,7 @@ public class TrackingItemResponseDto {
     private String currentLocationCode;
 
     public TrackingItemResponseDto(TrackingItemVo vo) {
+        this.id = vo.getId();
         this.itemId = vo.getItemId();
         this.status = vo.getStatus();
         this.barcode = vo.getBarcode();

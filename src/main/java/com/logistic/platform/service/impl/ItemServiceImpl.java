@@ -171,6 +171,7 @@ public class ItemServiceImpl implements ItemService {
             if (items != null) {
                 for (Item item : items) {
                     TrackingItemVo itemVo = new TrackingItemVo();
+                    itemVo.setId(item.getId());
                     itemVo.setItemId(item.getItemId());
                     itemVo.setStatus(item.getStatus().name());
                     itemVo.setBarcode(item.getBarcodeNumber());
