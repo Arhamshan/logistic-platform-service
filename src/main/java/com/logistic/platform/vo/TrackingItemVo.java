@@ -11,6 +11,9 @@ import java.util.List;
 @NoArgsConstructor
 public class TrackingItemVo {
 
+    @JsonProperty("id")
+    private Long id;
+
     @JsonProperty("itemId")
     private String itemId;
 

@@ -17,7 +17,7 @@ public class PodResponseDto {
     private String deliveredBy;
 
     public PodResponseDto(Pod pod) {
-        this.id              = pod.getId();
+        this.id = pod.getId();
         this.receivedBy      = pod.getReceivedBy();
         this.receiverContact = pod.getReceiverContact();
         this.podPath         = pod.getPodPath();
