@@ -31,7 +31,7 @@ public class UserWriterRepository implements UserRepository {
 
         try {
 
-            String sql = UserQueryUtil.createUserQuery();
+            String sql = UserQueryUtil.insertUserQuery();
 
             // Convert LocalDateTime to Timestamp for JDBC
             Timestamp createdTimestamp = user.getCreatedDate() != null ?
@@ -39,11 +39,16 @@ public class UserWriterRepository implements UserRepository {
             Timestamp updatedTimestamp = user.getUpdatedDate() != null ?
                     Timestamp.valueOf(user.getUpdatedDate()) : Timestamp.valueOf(LocalDateTime.now());
 
+            Long contactId = (user.getContact() != null)
+                    ? user.getContact().getId()
+                    : null;
+
             rows = jdbcTemplate.update(sql,
                     user.getUsername(),
                     user.getPassword(),
                     user.getRole().name(),
                     user.getStatus().name(),
+                    contactId,
                     createdTimestamp,
                     user.getCreatedBy(),
                     updatedTimestamp,
