@@ -1,6 +1,7 @@
 package com.logistic.platform.service.impl;
 
 import com.logistic.common.entity.User;
+import com.logistic.common.enums.Role;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.common.enums.Status;
 import com.logistic.platform.repository.reader.UserReaderRepository;
@@ -13,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -95,5 +98,45 @@ public class UserServiceImpl implements UserService {
         }
 
         return user;
+    }
+
+    @Override
+    public List<User> getUsersByType(String type, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getUsersByType: type={}",
+                requestId, type);
+
+        List<User> result = null;
+
+        try {
+            // Validate role exists in enum before querying
+            try {
+                Role.valueOf(type.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid user type: " + type);
+            }
+
+            result = readerRepository.findAllByRole(type.toUpperCase(), requestId);
+
+            if (result == null || result.isEmpty()) {
+                LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getUsersByType: No users found for type={}",
+                        requestId, type);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getUsersByType: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getUsersByType: count={}|timeTaken={}",
+                    requestId,
+                    result != null ? result.size() : 0,
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
     }
 }

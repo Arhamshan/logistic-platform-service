@@ -34,4 +34,19 @@ public class UserQueryUtil {
 
         return query.toString();
     }
+
+    public static String findAllByRoleQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT ");
+        query.append("     u.id, ");
+        query.append("     u.username, ");
+        query.append("     u.role, ");
+        query.append("     u.status, ");
+        query.append("     c.name    AS contact_name, ");
+        query.append("     c.phone   AS contact_phone ");
+        query.append(" FROM \"Users\" u ");
+        query.append(" LEFT JOIN \"Contacts\" c ON u.contact_id = c.id ");
+        query.append(" WHERE u.role = ? ");
+        return query.toString();
+    }
 }
