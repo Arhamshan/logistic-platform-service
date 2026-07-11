@@ -44,6 +44,9 @@ public class UserController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = auth != null ? auth.getName() : "SYSTEM";
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] createUser: usernameFromAuthHeader={}", requestId, username);
 
             // change to enum role and change user object type
             User user = requestDto.toUser();
@@ -56,7 +59,7 @@ public class UserController {
 
             } else {
 
-                Boolean isCreated = userService.createUser(user, requestId);
+                Boolean isCreated = userService.createUser(user, requestId, username);
 
                 if (Boolean.TRUE.equals(isCreated)) {
 
