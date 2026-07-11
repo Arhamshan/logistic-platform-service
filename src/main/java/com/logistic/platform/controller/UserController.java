@@ -9,6 +9,8 @@ import org.apache.logging.log4j.Logger;
 import com.logistic.platform.dto.user.CreateUserRequestDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -39,6 +41,9 @@ public class UserController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = auth != null ? auth.getName() : "SYSTEM";
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] createUser: usernameFromAuthHeader={}", requestId, username);
 
             // change to enum role and change user object type
             User user = requestDto.toUser();
@@ -51,7 +56,7 @@ public class UserController {
 
             } else {
 
-                Boolean isCreated = userService.createUser(user, requestId);
+                Boolean isCreated = userService.createUser(user, requestId, username);
 
                 if (Boolean.TRUE.equals(isCreated)) {
 
