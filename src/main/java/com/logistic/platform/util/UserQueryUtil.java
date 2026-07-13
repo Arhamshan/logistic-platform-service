@@ -6,15 +6,19 @@ public class UserQueryUtil {
         throw new IllegalStateException("LocationQueryUtil class");
     }
 
-    public static String createUserQuery() {
+    public static String insertUserQuery() {
         StringBuilder query = new StringBuilder();
-
-        query.append("INSERT INTO ");
-        query.append(" \"Users\" ");
-        query.append(" (username, password, role, status, created_date, created_by, updated_date, updated_by) ");
-        query.append("VALUES ");
-        query.append(" (?, ?, ?, ?, ?, ?, ?, ?) ");
-
+        query.append(" INSERT INTO \"Users\" ( ");
+        query.append("     username, ");
+        query.append("     password, ");
+        query.append("     role, ");
+        query.append("     status, ");
+        query.append("     contact_id, ");
+        query.append("     created_date, ");
+        query.append("     created_by, ");
+        query.append("     updated_date, ");
+        query.append("     updated_by ");
+        query.append(" ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ");
         return query.toString();
     }
 

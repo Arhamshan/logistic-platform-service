@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface UserService {
 
-    Boolean createUser(User user, String requestId);
+    Boolean createUser(User user, String requestId, String username);
 
     User getByUsername(String username, String requestId);
 
