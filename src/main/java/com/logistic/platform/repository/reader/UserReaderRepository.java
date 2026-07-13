@@ -1,5 +1,6 @@
 package com.logistic.platform.repository.reader;
 
+import com.logistic.common.entity.Contact;
 import com.logistic.common.entity.User;
 import com.logistic.common.enums.Role;
 import com.logistic.common.util.CommonUtils;
@@ -64,6 +65,48 @@ public class UserReaderRepository implements UserRepository {
         }
 
         return user;
+    }
+
+    public List<User> findAllByRole(String role, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllByRole: role={}",
+                requestId, role);
+
+        List<User> result = null;
+
+        try {
+            String sql = UserQueryUtil.findAllByRoleQuery();
+
+            result = jdbcTemplate.query(sql, new Object[]{role},
+                    (rs, rowNum) -> {
+                        User user = new User();
+                        user.setId(rs.getLong("id"));
+                        user.setUsername(rs.getString("username"));
+
+                        // Map contact fields
+                        Contact contact = new Contact();
+                        contact.setName(rs.getString("contact_name"));
+                        contact.setPhone(rs.getString("contact_phone"));
+                        user.setContact(contact);
+
+                        return user;
+                    });
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findAllByRole: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to fetch users by role", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findAllByRole: count={}|timeTaken={}",
+                    requestId,
+                    result != null ? result.size() : 0,
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
     }
 
 }
