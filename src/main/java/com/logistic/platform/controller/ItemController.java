@@ -7,6 +7,7 @@ import com.logistic.common.entity.Pod;
 import com.logistic.common.enums.EventType;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.platform.dto.item.GetItemResponseDto;
 import com.logistic.platform.dto.pod.PodResponseDto;
 import com.logistic.platform.service.PodService;
 import com.logistic.platform.util.ConsignmentUtil;
@@ -22,6 +23,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/v1/items")
@@ -178,6 +181,59 @@ public class ItemController {
         } finally {
             response.setTimestamp(LocalDateTime.now());
             LOGGER.info("END [REST-LAYER] [RequestId={}] getPod: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{status}")
+    public ResponseEntity<ResponseDto<List<GetItemResponseDto>>> getItemsByStatus(
+            @PathVariable("status") String status,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] getItemsByStatus: status={}",
+                requestId, status);
+
+        ResponseDto<List<GetItemResponseDto>> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] getItemsByStatus: usernameFromAuthHeader={}",
+                    requestId, auth.getName());
+
+            List<Item> items = itemService.getItemsByStatus(status, requestId);
+
+            if (items == null || items.isEmpty()) {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Items not found");
+                response.setData(null);
+
+            } else {
+                // Entity → DTO conversion at REST boundary only
+                List<GetItemResponseDto> data = items.stream()
+                        .map(GetItemResponseDto::new)
+                        .collect(Collectors.toList());
+
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Items retrieved successfully");
+                response.setData(data);
+            }
+
+        } catch (IllegalArgumentException e) {
+            response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+            response.setResponseMessage("Invalid item status: " + status);
+            response.setData(null);
+
+            LOGGER.warn("WARN [REST-LAYER] [RequestId={}] getItemsByStatus: invalid status={}",
+                    requestId, status);
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] getItemsByStatus: response={}|timeTaken={}",
                     requestId, response, CommonUtils.getExecutionTime(startTime));
         }
 

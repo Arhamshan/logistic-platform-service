@@ -43,4 +43,8 @@ public interface ItemRepository {
     public default Boolean updateItems(List<Item> items, String username, String requestId){
         return false;
     }
+
+    public default List<Item> findAllByStatus(String status, String requestId){
+        return null;
+    }
 }

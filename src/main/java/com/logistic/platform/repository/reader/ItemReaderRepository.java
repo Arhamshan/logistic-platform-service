@@ -283,4 +283,41 @@ public class ItemReaderRepository implements ItemRepository {
 
         return itemsList;
     }
+
+    public List<Item> findAllByStatus(String status, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllByStatus: status={}",
+                requestId, status);
+
+        List<Item> result = null;
+
+        try {
+            String sql = ItemQueryUtil.findAllByStatusQuery();
+
+            result = jdbcTemplate.query(sql, new Object[]{status},
+                    (rs, rowNum) -> {
+                        Item item = new Item();
+                        item.setId(rs.getLong("id"));
+                        item.setItemId(rs.getString("item_id"));
+                        item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+                        item.setCurrentLocationCode(rs.getString("current_location_code"));
+                        return item;
+                    });
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findAllByStatus: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to fetch items by status", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findAllByStatus: count={}|timeTaken={}",
+                    requestId,
+                    result != null ? result.size() : 0,
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
+    }
 }

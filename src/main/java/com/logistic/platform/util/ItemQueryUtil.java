@@ -173,4 +173,17 @@ public class ItemQueryUtil {
 
         return query.toString();
     }
+
+    public static String findAllByStatusQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT ");
+        query.append("     id, ");
+        query.append("     item_id, ");
+        query.append("     status, ");
+        query.append("     current_location_code ");
+        query.append(" FROM \"Items\" ");
+        query.append(" WHERE status = ? ");
+        query.append(" ORDER BY id ASC ");
+        return query.toString();
+    }
 }
