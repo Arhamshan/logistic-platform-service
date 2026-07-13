@@ -29,4 +29,6 @@ public interface ItemService {
 
     Boolean updateItems(List<Item> items, String username, String requestId);
 
+    List<Item> getItemsByStatus(String status, String requestId);
+
 }

@@ -405,4 +405,44 @@ public class ItemServiceImpl implements ItemService {
 
         return isUpdated;
     }
+
+    @Override
+    public List<Item> getItemsByStatus(String status, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemsByStatus: status={}",
+                requestId, status);
+
+        List<Item> result = null;
+
+        try {
+            // Validate status exists in enum before querying
+            try {
+                ItemStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid item status: " + status);
+            }
+
+            result = itemReaderRepository.findAllByStatus(status.toUpperCase(), requestId);
+
+            if (result == null || result.isEmpty()) {
+                LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getItemsByStatus: No items found for status={}",
+                        requestId, status);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getItemsByStatus: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getItemsByStatus: count={}|timeTaken={}",
+                    requestId,
+                    result != null ? result.size() : 0,
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
+    }
 }
