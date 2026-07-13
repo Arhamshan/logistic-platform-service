@@ -47,7 +47,12 @@ public class UserQueryUtil {
         query.append("     u.role, ");
         query.append("     u.status, ");
         query.append("     c.name    AS contact_name, ");
-        query.append("     c.phone   AS contact_phone ");
+        query.append("     c.phone   AS contact_phone, ");
+        query.append("     c.address_line1 AS contact_address_line1, ");
+        query.append("     c.address_line2 AS contact_address_line2, ");
+        query.append("    c.suburb  AS contact_suburb, ");
+        query.append("    c.state   AS contact_state, ");
+        query.append("    c.country AS contact_country ");
         query.append(" FROM \"Users\" u ");
         query.append(" LEFT JOIN \"Contacts\" c ON u.contact_id = c.id ");
         query.append(" WHERE u.role = ? ");

@@ -89,6 +89,11 @@ public class UserReaderRepository implements UserRepository {
                         Contact contact = new Contact();
                         contact.setName(rs.getString("contact_name"));
                         contact.setPhone(rs.getString("contact_phone"));
+                        contact.setAddressLine1(rs.getString("contact_address_line1"));
+                        contact.setAddressLine2(rs.getString("contact_address_line2"));
+                        contact.setSuburb(rs.getString("contact_suburb"));
+                        contact.setState(rs.getString("contact_state"));
+                        contact.setCountry(rs.getString("contact_country"));
                         user.setContact(contact);
 
                         return user;
