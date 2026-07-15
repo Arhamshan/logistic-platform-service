@@ -239,4 +239,56 @@ public class ItemController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/driver/{driverId}")
+    public ResponseEntity<ResponseDto<List<GetItemResponseDto>>> getItemsByDriverId(
+            @PathVariable("driverId") Long driverId,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] getItemsByDriverId: driverId={}",
+                requestId, driverId);
+
+        ResponseDto<List<GetItemResponseDto>> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] getItemsByDriverId: usernameFromAuthHeader={}",
+                    requestId, auth.getName());
+
+            List<Item> items = itemService.getItemsByDriverId(driverId, requestId);
+
+            if (items == null || items.isEmpty()) {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Items not found");
+                response.setData(null);
+
+            } else {
+                List<GetItemResponseDto> data = items.stream()
+                        .map(GetItemResponseDto::new)
+                        .collect(Collectors.toList());
+
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Items retrieved successfully");
+                response.setData(data);
+            }
+
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to get items");
+            response.setData(null);
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] getItemsByDriverId: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] getItemsByDriverId: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
+    }
 }

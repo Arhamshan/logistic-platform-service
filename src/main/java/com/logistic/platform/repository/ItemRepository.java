@@ -47,4 +47,8 @@ public interface ItemRepository {
     public default List<Item> findAllByStatus(String status, String requestId){
         return null;
     }
+
+    public default List<Item> findAllByDriverId(Long driverId, String requestId){
+        return null;
+    }
 }

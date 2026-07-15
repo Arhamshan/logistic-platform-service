@@ -445,4 +445,41 @@ public class ItemServiceImpl implements ItemService {
 
         return result;
     }
+
+    @Override
+    public List<Item> getItemsByDriverId(Long driverId, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemsByDriverId: driverId={}",
+                requestId, driverId);
+
+        List<Item> result = null;
+
+        try {
+            if (driverId == null || driverId <= 0) {
+                throw new IllegalArgumentException("Invalid driverId: " + driverId);
+            }
+
+            result = itemReaderRepository.findAllByDriverId(driverId, requestId);
+
+            if (result == null || result.isEmpty()) {
+                LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getItemsByDriverId: No items found for driverId={}",
+                        requestId, driverId);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getItemsByDriverId: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getItemsByDriverId: count={}|timeTaken={}",
+                    requestId,
+                    result != null ? result.size() : 0,
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
+    }
 }
