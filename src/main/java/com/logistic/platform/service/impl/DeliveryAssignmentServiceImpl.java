@@ -1,9 +1,12 @@
 package com.logistic.platform.service.impl;
 
 import com.logistic.common.entity.DeliveryAssignment;
+import com.logistic.common.entity.Event;
+import com.logistic.common.enums.EventType;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.repository.writer.DeliveryAssignmentWriterRepository;
 import com.logistic.platform.service.DeliveryAssignmentService;
+import com.logistic.platform.service.EventService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -17,9 +20,12 @@ public class DeliveryAssignmentServiceImpl implements DeliveryAssignmentService 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeliveryAssignmentServiceImpl.class);
 
     private final DeliveryAssignmentWriterRepository writerRepository;
+    private final EventService eventService;
 
-    public DeliveryAssignmentServiceImpl(DeliveryAssignmentWriterRepository writerRepository) {
+    public DeliveryAssignmentServiceImpl(DeliveryAssignmentWriterRepository writerRepository,
+                                         EventService eventService) {
         this.writerRepository = writerRepository;
+        this.eventService = eventService;
     }
 
     @Override
@@ -50,6 +56,15 @@ public class DeliveryAssignmentServiceImpl implements DeliveryAssignmentService 
             if (generatedId == null) {
                 throw new RuntimeException("DeliveryAssignment save returned no generated ID");
             }
+
+            Event event = new Event();
+            event.setItem(assignment.getItem());
+            event.setEventType(EventType.valueOf("DRIVER_ASSIGNED"));
+            event.setDescription("Item assigned to driver " + assignment.getDriver().getId());
+            event.setCreatedBy(assignment.getAssignedBy());
+            event.setCreatedDate(LocalDateTime.now());
+
+            eventService.saveEvent(event, requestId);
 
         } catch (Exception e) {
             LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] saveDeliveryAssignment: Ex={}|Trace={}",
