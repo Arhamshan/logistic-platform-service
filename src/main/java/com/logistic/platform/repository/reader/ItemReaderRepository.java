@@ -1,6 +1,7 @@
 package com.logistic.platform.repository.reader;
 
 import com.logistic.common.entity.Consignment;
+import com.logistic.common.entity.Contact;
 import com.logistic.common.entity.Item;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
@@ -298,11 +299,30 @@ public class ItemReaderRepository implements ItemRepository {
 
             result = jdbcTemplate.query(sql, new Object[]{status},
                     (rs, rowNum) -> {
+
+                        // ── Destination contact ──
+                        Contact destContact = new Contact();
+                        destContact.setName(rs.getString("dest_name"));
+                        destContact.setAddressLine1(rs.getString("dest_address_line1"));
+                        destContact.setAddressLine2(rs.getString("dest_address_line2"));
+                        destContact.setState(rs.getString("dest_state"));
+                        destContact.setSuburb(rs.getString("dest_suburb"));
+                        destContact.setPostcode(rs.getString("dest_postcode"));
+                        destContact.setCountry(rs.getString("dest_country"));
+
+                        // ── Consignment with destination contact ──
+                        Consignment consignment = new Consignment();
+                        consignment.setDestinationContact(destContact);
+
+                        // ── Item ──
                         Item item = new Item();
                         item.setId(rs.getLong("id"));
                         item.setItemId(rs.getString("item_id"));
                         item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+                        item.setWeight(rs.getFloat("weight"));
                         item.setCurrentLocationCode(rs.getString("current_location_code"));
+                        item.setConsignment(consignment);
+
                         return item;
                     });
 
