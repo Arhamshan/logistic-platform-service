@@ -340,4 +340,60 @@ public class ItemReaderRepository implements ItemRepository {
 
         return result;
     }
+
+    public List<Item> findAllByDriverId(Long driverId, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllByDriverId: driverId={}",
+                requestId, driverId);
+
+        List<Item> result = null;
+
+        try {
+            String sql = ItemQueryUtil.findAllByDriverIdQuery();
+
+            result = jdbcTemplate.query(sql, new Object[]{driverId},
+                    (rs, rowNum) -> {
+
+                        // ── Destination contact ──
+                        Contact destContact = new Contact();
+                        destContact.setName(rs.getString("dest_name"));
+                        destContact.setAddressLine1(rs.getString("dest_address_line1"));
+                        destContact.setAddressLine2(rs.getString("dest_address_line2"));
+                        destContact.setState(rs.getString("dest_state"));
+                        destContact.setSuburb(rs.getString("dest_suburb"));
+                        destContact.setPostcode(rs.getString("dest_postcode"));
+                        destContact.setCountry(rs.getString("dest_country"));
+
+                        // ── Consignment with destination contact ──
+                        Consignment consignment = new Consignment();
+                        consignment.setDestinationContact(destContact);
+
+                        // ── Item ──
+                        Item item = new Item();
+                        item.setId(rs.getLong("id"));
+                        item.setItemId(rs.getString("item_id"));
+                        item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+                        item.setWeight(rs.getFloat("weight"));
+                        item.setCurrentLocationCode(rs.getString("current_location_code"));
+                        item.setConsignment(consignment);
+
+                        return item;
+                    });
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findAllByDriverId: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to fetch items by driverId", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findAllByDriverId: count={}|timeTaken={}",
+                    requestId,
+                    result != null ? result.size() : 0,
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
+    }
 }
