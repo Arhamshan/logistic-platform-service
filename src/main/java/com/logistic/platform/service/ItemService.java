@@ -31,4 +31,6 @@ public interface ItemService {
 
     List<Item> getItemsByStatus(String status, String requestId);
 
+    List<Item> getItemsByDriverId(Long driverId, String requestId);
+
 }
