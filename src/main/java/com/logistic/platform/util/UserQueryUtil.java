@@ -6,15 +6,19 @@ public class UserQueryUtil {
         throw new IllegalStateException("LocationQueryUtil class");
     }
 
-    public static String createUserQuery() {
+    public static String insertUserQuery() {
         StringBuilder query = new StringBuilder();
-
-        query.append("INSERT INTO ");
-        query.append(" \"Users\" ");
-        query.append(" (username, password, role, status, created_date, created_by, updated_date, updated_by) ");
-        query.append("VALUES ");
-        query.append(" (?, ?, ?, ?, ?, ?, ?, ?) ");
-
+        query.append(" INSERT INTO \"Users\" ( ");
+        query.append("     username, ");
+        query.append("     password, ");
+        query.append("     role, ");
+        query.append("     status, ");
+        query.append("     contact_id, ");
+        query.append("     created_date, ");
+        query.append("     created_by, ");
+        query.append("     updated_date, ");
+        query.append("     updated_by ");
+        query.append(" ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ");
         return query.toString();
     }
 
@@ -30,7 +34,28 @@ public class UserQueryUtil {
         query.append(" \"Users\" u ");
         query.append("WHERE ");
         query.append(" u.username = ? ");
+        query.append(" AND u.status = 'ACTIVE' ");
 
+        return query.toString();
+    }
+
+    public static String findAllByRoleQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT ");
+        query.append("     u.id, ");
+        query.append("     u.username, ");
+        query.append("     u.role, ");
+        query.append("     u.status, ");
+        query.append("     c.name    AS contact_name, ");
+        query.append("     c.phone   AS contact_phone, ");
+        query.append("     c.address_line1 AS contact_address_line1, ");
+        query.append("     c.address_line2 AS contact_address_line2, ");
+        query.append("    c.suburb  AS contact_suburb, ");
+        query.append("    c.state   AS contact_state, ");
+        query.append("    c.country AS contact_country ");
+        query.append(" FROM \"Users\" u ");
+        query.append(" LEFT JOIN \"Contacts\" c ON u.contact_id = c.id ");
+        query.append(" WHERE u.role = ? ");
         return query.toString();
     }
 }

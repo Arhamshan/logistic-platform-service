@@ -13,6 +13,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -46,10 +48,16 @@ public class LocationController {
         LocationResponseDto responseDto = null;
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
             Location location = locationRequestDto.toLocation();
 
             String newLocationCode = service.generateLocationCode(requestId);
             location.setLocationCode(newLocationCode);
+
+            if(auth != null) {
+                location.setCreatedBy(auth.getName());
+            }
 
             Boolean isCreated = service.create(location, requestId);
 
@@ -92,6 +100,9 @@ public class LocationController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] getAllLocations: usernameFromAuthHeader={}", requestId, auth.getName());
+
             // Service returns List<Location> (entities), not DTOs
             List<Location> locations = service.getAllLocations(requestId);
 
@@ -154,9 +165,14 @@ public class LocationController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
             Location location = requestDto.toLocation();
             // No need to set ID separately as it comes from requestDto
+
+            if(auth != null) {
+                location.setUpdatedBy(auth.getName());
+            }
 
             if (location.getName() == null || location.getType() == null || location.getCountry() == null ||
                     location.getCity() == null || location.getType() == null) {
@@ -221,6 +237,9 @@ public class LocationController {
         response.setRequestId(requestId);
 
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] getLocationByCode: usernameFromAuthHeader={}", requestId, auth.getName());
+
             Location location = service.getLocationByCode(locationCode, requestId);  //return single Location
 
             if (location != null) {
@@ -254,5 +273,51 @@ public class LocationController {
         }
 
         return ResponseEntity.status(HttpStatus.valueOf(response.getResponseCode())).body(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResponseDto<Void>> deleteLocation(
+            @PathVariable("id") Long id,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] deleteLocation: id={}",
+                requestId, id);
+
+        ResponseDto<Void> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] deleteLocation: usernameFromAuthHeader={}", requestId, auth.getName());
+
+            Boolean isDeleted = service.deleteById(id, requestId);
+
+            if (Boolean.TRUE.equals(isDeleted)) {
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Location deleted successfully.");
+                response.setData(null);
+
+            } else {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Failed to delete location.");
+                response.setData(null);
+            }
+
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to delete location.");
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] deleteLocation: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] deleteLocation: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
     }
 }

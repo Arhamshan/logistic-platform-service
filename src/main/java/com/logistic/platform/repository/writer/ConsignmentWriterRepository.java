@@ -1,20 +1,25 @@
 package com.logistic.platform.repository.writer;
 
 import com.logistic.common.entity.Consignment;
+import com.logistic.common.entity.Item;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.repository.ConsignmentRepository;
 import com.logistic.platform.util.ConsignmentQueryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 @Repository
@@ -103,6 +108,68 @@ public class ConsignmentWriterRepository implements ConsignmentRepository {
 
             LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] updateStatus: id={}|timeTaken={}",
                     requestId, consignment.getId(), CommonUtils.getExecutionTime(startTime));
+        }
+
+        return isUpdated;
+    }
+
+    public Boolean deleteById(Long id, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] deleteById: id={}",
+                requestId, id);
+
+        Boolean isDeleted = Boolean.FALSE;
+
+        try {
+            String sql = ConsignmentQueryUtil.deleteByIdQuery();
+
+            int rowsAffected = jdbcTemplate.update(sql, id);
+            isDeleted = rowsAffected > 0;
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] deleteById: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to delete consignment", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] deleteById: isDeleted={}|timeTaken={}",
+                    requestId, isDeleted, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return isDeleted;
+    }
+
+    public Boolean updateConsignment(Consignment consignment, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] updateConsignment: consignment={}",
+                requestId, CommonUtils.convertToString(consignment));
+
+        Boolean isUpdated = Boolean.FALSE;
+
+        try {
+            String sql = ConsignmentQueryUtil.updateConsignmentQuery();
+
+            int rowsAffected = jdbcTemplate.update(sql,
+                    consignment.getConsignmentId(),
+                    LocalDateTime.now(),
+                    consignment.getUpdatedBy(),
+                    consignment.getId()
+            );
+
+            isUpdated = rowsAffected > 0;
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] updateConsignment: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to update consignment", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] updateConsignment: isUpdated={}|timeTaken={}",
+                    requestId, isUpdated, CommonUtils.getExecutionTime(startTime));
         }
 
         return isUpdated;

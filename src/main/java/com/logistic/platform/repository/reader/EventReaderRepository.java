@@ -44,7 +44,8 @@ public class EventReaderRepository implements EventRepository {
 
                         TrackingLocationVo location = new TrackingLocationVo(
                                 rs.getString("location_name"),
-                                rs.getString("location_type")
+                                rs.getString("location_type"),
+                                rs.getString("location_code")
                         );
                         event.setLocation(location);
 

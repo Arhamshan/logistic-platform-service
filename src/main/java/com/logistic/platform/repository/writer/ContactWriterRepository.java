@@ -107,4 +107,45 @@ public class ContactWriterRepository implements ContactRepository {
 
         return contact;
     }
+
+    public Contact update(Contact contact, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] updateContact: contact={}",
+                requestId, CommonUtils.convertToString(contact));
+
+        try {
+            String sql = ContactQueryUtil.updateContactQuery();
+
+            int rowsAffected = jdbcTemplate.update(sql,
+                    contact.getName(),
+                    contact.getEmail(),
+                    contact.getPhone(),
+                    contact.getAddressLine1(),
+                    contact.getAddressLine2(),
+                    contact.getState(),
+                    contact.getSuburb(),
+                    contact.getPostcode(),
+                    contact.getCountry(),
+                    Timestamp.valueOf(contact.getUpdatedDate()),
+                    contact.getUpdatedBy(),
+                    contact.getId()
+            );
+
+            if (rowsAffected == 0) {
+                throw new RuntimeException("No contact found with id " + contact.getId());
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] updateContact: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to update contact", e);
+        }
+
+        LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] updateContact: contactId={}|timeTaken={}",
+                requestId, contact.getId(), CommonUtils.getExecutionTime(startTime));
+
+        return contact;
+    }
 }

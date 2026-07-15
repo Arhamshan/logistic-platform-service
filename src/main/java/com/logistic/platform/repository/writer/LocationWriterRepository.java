@@ -100,6 +100,7 @@ public class LocationWriterRepository implements LocationRepository {
                     location.getCity(),
                     location.getLatitude(),
                     location.getLongitude(),
+                    location.getUpdatedBy(),
                     location.getId()
             );
 
@@ -109,6 +110,32 @@ public class LocationWriterRepository implements LocationRepository {
 
         } finally {
             LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] updateLocation: rows={}|timeTaken={}",
+                    requestId, rows, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return rows > 0;
+    }
+
+    public Boolean deleteById(Long id, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] deleteById: id={}",
+                requestId, id);
+
+        int rows = 0;
+
+        try {
+            String sql = LocationQueryUtil.deleteByIdQuery();
+            rows = jdbcTemplate.update(sql, id);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] deleteById: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to delete location", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] deleteById: rows={}|timeTaken={}",
                     requestId, rows, CommonUtils.getExecutionTime(startTime));
         }
 

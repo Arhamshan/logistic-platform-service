@@ -16,4 +16,19 @@ public interface ItemService {
     void updateStatusAndLocation(Item item, String requestId);
 
     List<TrackingItemVo> getTrackingItems(String consignmentId, String requestId);
+
+    String generateBarcodeNumber(String lastBarcode,String requestId);
+
+    String getLastBarcodeNumber(String requestId);
+
+    Item getItemByBarcodeNumber(String barcodeNumber, String requestId);
+
+    Boolean updateStatus(Long id, String status, String locationCode, String requestId, String username);
+
+    List<Item> getByConsId(Long consId, String requestId);
+
+    Boolean updateItems(List<Item> items, String username, String requestId);
+
+    List<Item> getItemsByStatus(String status, String requestId);
+
 }

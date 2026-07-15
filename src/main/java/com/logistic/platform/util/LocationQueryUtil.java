@@ -69,7 +69,8 @@ public class LocationQueryUtil {
         query.append("country = ?, ");
         query.append("city = ?, ");
         query.append("latitude = ?, ");
-        query.append("longitude = ? ");
+        query.append("longitude = ?, ");
+        query.append("updated_by = ? ");
         query.append("WHERE ");
         query.append("id = ?");
 
@@ -91,6 +92,16 @@ public class LocationQueryUtil {
         query.append(" \"Locations\" l ");
         query.append("WHERE ");
         query.append(" l.location_code = ? ");
+
+        return query.toString();
+    }
+
+    public static String deleteByIdQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append("DELETE FROM ");
+        query.append("\"Locations\" ");
+        query.append("WHERE ");
+        query.append("id = ?");
 
         return query.toString();
     }
