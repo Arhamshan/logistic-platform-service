@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class GetItemResponseDto {
 
+    private Long id;
     private String itemId;
     private String status;
     private String itemWeight;
@@ -26,6 +27,7 @@ public class GetItemResponseDto {
     private String destinaionCountry;
 
     public GetItemResponseDto(Item item) {
+        this.id                  = item.getId();
         this.itemId              = item.getItemId();
         this.status              = item.getStatus() != null ? item.getStatus().name() : null;
         this.itemWeight          = item.getWeight() != null ? String.valueOf(item.getWeight()) : null;
