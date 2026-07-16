@@ -31,7 +31,6 @@ public class ConsignmentUtil {
             case PARCEL_IN_TRANSIT:        return ItemStatus.IN_TRANSIT;
             case PARCEL_OUT_FOR_DELIVERY:  return ItemStatus.OUT_FOR_DELIVERY;
             case PARCEL_DELIVERED:         return ItemStatus.DELIVERED;
-
             default: throw new IllegalArgumentException("Unknown eventType: " + eventType);
         }
     }

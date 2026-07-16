@@ -59,7 +59,7 @@ public class DeliveryAssignmentServiceImpl implements DeliveryAssignmentService 
 
             Event event = new Event();
             event.setItem(assignment.getItem());
-            event.setEventType(EventType.valueOf("DRIVER_ASSIGNED"));
+            event.setEventType(EventType.DRIVER_ASSIGNED);
             event.setDescription("Item assigned to driver " + assignment.getDriver().getId());
             event.setCreatedBy(assignment.getAssignedBy());
             event.setCreatedDate(LocalDateTime.now());
