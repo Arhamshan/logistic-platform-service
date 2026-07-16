@@ -368,6 +368,7 @@ public class ItemReaderRepository implements ItemRepository {
 
                         // ── Consignment with destination contact ──
                         Consignment consignment = new Consignment();
+                        consignment.setConsignmentId(rs.getString("consignment_id"));
                         consignment.setDestinationContact(destContact);
 
                         // ── Item ──
