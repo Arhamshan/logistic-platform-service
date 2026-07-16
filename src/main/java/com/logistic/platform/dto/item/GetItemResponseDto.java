@@ -15,6 +15,7 @@ public class GetItemResponseDto {
     private String status;
     private String itemWeight;
     private String currentLocationCode;
+    private String consignmentId;
 
     // Destination contact fields
     private String destinationContactName;
@@ -30,6 +31,7 @@ public class GetItemResponseDto {
         this.status              = item.getStatus() != null ? item.getStatus().name() : null;
         this.itemWeight          = item.getWeight() != null ? String.valueOf(item.getWeight()) : null;
         this.currentLocationCode = item.getCurrentLocationCode();
+        this.consignmentId      = item.getConsignment() != null ? item.getConsignment().getConsignmentId() : null;
 
         // Destination contact via consignment → destinationContact
         if (item.getConsignment() != null

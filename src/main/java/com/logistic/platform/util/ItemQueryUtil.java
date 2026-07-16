@@ -206,6 +206,7 @@ public class ItemQueryUtil {
         query.append("     i.status, ");
         query.append("     i.weight, ");
         query.append("     i.current_location_code, ");
+        query.append("     c.consignment_id, ");
         query.append("     dc.name          AS dest_name, ");
         query.append("     dc.address_line1 AS dest_address_line1, ");
         query.append("     dc.address_line2 AS dest_address_line2, ");
