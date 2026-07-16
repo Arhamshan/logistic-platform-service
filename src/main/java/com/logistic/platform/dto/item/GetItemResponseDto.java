@@ -1,5 +1,6 @@
 package com.logistic.platform.dto.item;
 
+import com.logistic.common.entity.Contact;
 import com.logistic.common.entity.Item;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,7 +34,7 @@ public class GetItemResponseDto {
         // Destination contact via consignment → destinationContact
         if (item.getConsignment() != null
                 && item.getConsignment().getDestinationContact() != null) {
-            var dest = item.getConsignment().getDestinationContact();
+            Contact dest = item.getConsignment().getDestinationContact();
             this.destinationContactName = dest.getName();
             this.destinaionAddressLine1 = dest.getAddressLine1();
             this.destinaionAddressLine2 = dest.getAddressLine2();
