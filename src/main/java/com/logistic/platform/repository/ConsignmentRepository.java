@@ -34,6 +34,10 @@ public interface ConsignmentRepository {
         return Collections.emptyList();
     }
 
+    public default Integer findAllCount(String requestId) {
+        return null;
+    }
+
     public default Boolean deleteById(Long id, String requestId) {
         return false;
     };

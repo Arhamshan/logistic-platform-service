@@ -190,7 +190,7 @@ public class ConsignmentReaderRepository implements ConsignmentRepository {
         try {
             int offSet = pageNumber * pageSize;
 
-            String sql = ConsignmentQueryUtil.findAllQuery(sortBy, sortDir);
+            String sql = ConsignmentQueryUtil.findAllQuery(sortBy, sortDir, Boolean.FALSE);
 
             consignments = jdbcTemplate.query(sql, new Object[]{pageSize, offSet},
                     (rs, rowNum) -> {
@@ -216,7 +216,7 @@ public class ConsignmentReaderRepository implements ConsignmentRepository {
         } catch (Exception e) {
             LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findAll: Ex={}|Trace={}",
                     requestId, e.getMessage(), e.getStackTrace());
-            throw new RuntimeException("Failed to fetch summary", e);
+            throw new RuntimeException("Failed to fetch all consignments", e);
 
         } finally {
             LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findAll: result={}|timeTaken={}",
@@ -224,6 +224,34 @@ public class ConsignmentReaderRepository implements ConsignmentRepository {
         }
 
         return consignments;
+    }
+
+    public Integer findAllCount(String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllCount:", requestId);
+
+        List<Consignment> consignments = null;
+        Integer total = 0;
+
+        try {
+
+            String sql = ConsignmentQueryUtil.findAllQuery(null, null, Boolean.TRUE);
+
+            total = jdbcTemplate.queryForObject(sql, Integer.class);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findAllCount: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to fetch total count ", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findAllCount: count={}|timeTaken={}",
+                    requestId, total, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return total;
     }
 
     public Optional<ConsignmentVo> findById(Long id, String requestId) {
