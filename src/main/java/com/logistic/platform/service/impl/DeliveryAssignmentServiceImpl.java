@@ -9,6 +9,7 @@ import com.logistic.platform.repository.reader.DeliveryAssignmentReaderRepositor
 import com.logistic.platform.repository.writer.DeliveryAssignmentWriterRepository;
 import com.logistic.platform.service.DeliveryAssignmentService;
 import com.logistic.platform.service.EventService;
+import com.logistic.platform.vo.DeliveryAssignmentSummaryVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -85,13 +86,13 @@ public class DeliveryAssignmentServiceImpl implements DeliveryAssignmentService 
     }
 
     @Override
-    public DeliveryAssignmentSummaryDto getSummary(String requestId) {
+    public DeliveryAssignmentSummaryVo getSummary(String requestId) {
 
         long startTime = System.currentTimeMillis();
 
         LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getSummary", requestId);
 
-        DeliveryAssignmentSummaryDto result = null;
+        DeliveryAssignmentSummaryVo result = null;
 
         try {
             result = readerRepository.findSummary(requestId);

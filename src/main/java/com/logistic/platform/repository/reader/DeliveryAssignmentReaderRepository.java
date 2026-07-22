@@ -1,9 +1,8 @@
 package com.logistic.platform.repository.reader;
 
 import com.logistic.common.util.CommonUtils;
-import com.logistic.platform.dto.delivery.DeliveryAssignmentSummaryDto;
-import com.logistic.platform.repository.DeliveryAssignmentRepository;
 import com.logistic.platform.util.DeliveryAssignmentQueryUtil;
+import com.logistic.platform.vo.DeliveryAssignmentSummaryVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public class DeliveryAssignmentReaderRepository implements DeliveryAssignmentRepository {
+public class DeliveryAssignmentReaderRepository {
 
     private static final Logger LOGGER =
             LoggerFactory.getLogger(DeliveryAssignmentReaderRepository.class);
@@ -25,20 +24,19 @@ public class DeliveryAssignmentReaderRepository implements DeliveryAssignmentRep
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public DeliveryAssignmentSummaryDto findSummary(String requestId) {
+    public DeliveryAssignmentSummaryVo findSummary(String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findSummary",
-                requestId);
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findSummary", requestId);
 
-        DeliveryAssignmentSummaryDto result = null;
+        DeliveryAssignmentSummaryVo result = null;
 
         try {
             String sql = DeliveryAssignmentQueryUtil.findSummaryQuery();
 
-            List<DeliveryAssignmentSummaryDto> rows = jdbcTemplate.query(sql,
-                    (rs, rowNum) -> new DeliveryAssignmentSummaryDto(
+            List<DeliveryAssignmentSummaryVo> rows = jdbcTemplate.query(sql,
+                    (rs, rowNum) -> new DeliveryAssignmentSummaryVo(
                             rs.getLong("total_intransit_items"),
                             rs.getLong("today_assignments"),
                             rs.getLong("total_drivers")

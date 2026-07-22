@@ -8,6 +8,7 @@ import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.dto.delivery.DeliveryAssignmentRequestDto;
 import com.logistic.platform.dto.delivery.DeliveryAssignmentSummaryDto;
 import com.logistic.platform.service.DeliveryAssignmentService;
+import com.logistic.platform.vo.DeliveryAssignmentSummaryVo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -132,10 +133,11 @@ public class DeliveryAssignmentController {
         response.setRequestId(requestId);
 
         try {
-            DeliveryAssignmentSummaryDto summary =
+            // Service returns VO — DTO built here at REST boundary only
+            DeliveryAssignmentSummaryVo summaryVo =
                     deliveryAssignmentService.getSummary(requestId);
 
-            if (summary == null) {
+            if (summaryVo == null) {
                 response.setResponseCode(HttpStatus.BAD_REQUEST.value());
                 response.setResponseMessage("Failed to get summary");
                 response.setData(null);
@@ -143,7 +145,7 @@ public class DeliveryAssignmentController {
             } else {
                 response.setResponseCode(HttpStatus.OK.value());
                 response.setResponseMessage("Summary retrieved successfully");
-                response.setData(summary);
+                response.setData(new DeliveryAssignmentSummaryDto(summaryVo));
             }
 
         } catch (Exception e) {
