@@ -116,4 +116,42 @@ public class DeliveryAssignmentServiceImpl implements DeliveryAssignmentService 
 
         return result;
     }
+
+    @Override
+    public Boolean updateDeliveryAssignment(Long driverId, Long consItemId,
+                                            String status, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] updateDeliveryAssignment: driverId={}|consItemId={}|status={}",
+                requestId, driverId, consItemId, status);
+
+        Boolean result = Boolean.FALSE;
+
+        try {
+            if (driverId == null || consItemId == null || status == null || status.isBlank()) {
+                throw new IllegalArgumentException(
+                        "driverId, consItemId and status are required");
+            }
+
+            result = writerRepository.updateStatus(driverId, consItemId, status, requestId);
+
+            if (Boolean.FALSE.equals(result)) {
+                LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] updateDeliveryAssignment: " +
+                                "No record found for driverId={}|consItemId={}",
+                        requestId, driverId, consItemId);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] updateDeliveryAssignment: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] updateDeliveryAssignment: result={}|timeTaken={}",
+                    requestId, result, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
+    }
 }

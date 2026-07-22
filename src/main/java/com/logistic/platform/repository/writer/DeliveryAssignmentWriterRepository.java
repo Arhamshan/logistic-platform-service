@@ -2,6 +2,7 @@ package com.logistic.platform.repository.writer;
 
 import com.logistic.common.entity.DeliveryAssignment;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.platform.repository.DeliveryAssignmentRepository;
 import com.logistic.platform.util.DeliveryAssignmentQueryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 
 @Repository
-public class DeliveryAssignmentWriterRepository {
+public class DeliveryAssignmentWriterRepository implements DeliveryAssignmentRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeliveryAssignmentWriterRepository.class);
 
@@ -72,5 +73,32 @@ public class DeliveryAssignmentWriterRepository {
         }
 
         return generatedId;
+    }
+
+    public Boolean updateStatus(Long driverId, Long consItemId, String status, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] updateStatus: driverId={}|consItemId={}|status={}",
+                requestId, driverId, consItemId, status);
+
+        int rows = 0;
+
+        try {
+            String sql = DeliveryAssignmentQueryUtil.updateStatusByDriverIdAndConsItemIdQuery();
+
+            rows = jdbcTemplate.update(sql, status, driverId, consItemId);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] updateStatus: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to update delivery assignment", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] updateStatus: rows={}|timeTaken={}",
+                    requestId, rows, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return rows > 0;
     }
 }

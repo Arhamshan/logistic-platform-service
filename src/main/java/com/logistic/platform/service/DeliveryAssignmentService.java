@@ -9,4 +9,6 @@ public interface DeliveryAssignmentService {
     Long saveDeliveryAssignment(DeliveryAssignment assignment, String requestId);
 
     DeliveryAssignmentSummaryVo getSummary(String requestId);
+
+    Boolean updateDeliveryAssignment(Long driverId, Long consItemId, String status, String requestId);
 }

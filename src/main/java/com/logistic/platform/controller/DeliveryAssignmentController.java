@@ -164,4 +164,55 @@ public class DeliveryAssignmentController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{driverId}")
+    public ResponseEntity<ResponseDto<Void>> updateDeliveryAssignment(
+            @PathVariable("driverId") Long driverId,
+            @RequestParam("consItemId") Long consItemId,
+            @RequestParam("status") String status,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] updateDeliveryAssignment: driverId={}|consItemId={}|status={}",
+                requestId, driverId, consItemId, status);
+
+        ResponseDto<Void> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] updateDeliveryAssignment: usernameFromAuthHeader={}",
+                    requestId, auth.getName());
+
+            Boolean isUpdated = deliveryAssignmentService
+                    .updateDeliveryAssignment(driverId, consItemId, status, requestId);
+
+            if (Boolean.TRUE.equals(isUpdated)) {
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Updated delivery assignment successfully");
+                response.setData(null);
+
+            } else {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Failed to update delivery assignment");
+                response.setData(null);
+            }
+
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to update delivery assignment");
+            response.setData(null);
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] updateDeliveryAssignment: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] updateDeliveryAssignment: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
+    }
 }
