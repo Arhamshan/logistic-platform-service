@@ -4,9 +4,12 @@ import com.logistic.common.entity.DeliveryAssignment;
 import com.logistic.common.entity.Event;
 import com.logistic.common.enums.EventType;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.platform.dto.delivery.DeliveryAssignmentSummaryDto;
+import com.logistic.platform.repository.reader.DeliveryAssignmentReaderRepository;
 import com.logistic.platform.repository.writer.DeliveryAssignmentWriterRepository;
 import com.logistic.platform.service.DeliveryAssignmentService;
 import com.logistic.platform.service.EventService;
+import com.logistic.platform.vo.DeliveryAssignmentSummaryVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,11 +23,14 @@ public class DeliveryAssignmentServiceImpl implements DeliveryAssignmentService 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeliveryAssignmentServiceImpl.class);
 
     private final DeliveryAssignmentWriterRepository writerRepository;
+    private final DeliveryAssignmentReaderRepository readerRepository;
     private final EventService eventService;
 
     public DeliveryAssignmentServiceImpl(DeliveryAssignmentWriterRepository writerRepository,
+                                         DeliveryAssignmentReaderRepository readerRepository,
                                          EventService eventService) {
         this.writerRepository = writerRepository;
+        this.readerRepository = readerRepository;
         this.eventService = eventService;
     }
 
@@ -77,5 +83,37 @@ public class DeliveryAssignmentServiceImpl implements DeliveryAssignmentService 
         }
 
         return generatedId;
+    }
+
+    @Override
+    public DeliveryAssignmentSummaryVo getSummary(String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getSummary", requestId);
+
+        DeliveryAssignmentSummaryVo result = null;
+
+        try {
+            result = readerRepository.findSummary(requestId);
+
+            if (result == null) {
+                LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getSummary: No summary data returned",
+                        requestId);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getSummary: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getSummary: result={}|timeTaken={}",
+                    requestId,
+                    CommonUtils.convertToString(result),
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result;
     }
 }

@@ -5,8 +5,10 @@ import com.logistic.common.entity.DeliveryAssignment;
 import com.logistic.common.entity.Item;
 import com.logistic.common.entity.User;
 import com.logistic.common.util.CommonUtils;
-import com.logistic.platform.dto.DeliveryAssignmentRequestDto;
+import com.logistic.platform.dto.delivery.DeliveryAssignmentRequestDto;
+import com.logistic.platform.dto.delivery.DeliveryAssignmentSummaryDto;
 import com.logistic.platform.service.DeliveryAssignmentService;
+import com.logistic.platform.vo.DeliveryAssignmentSummaryVo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -15,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -114,6 +115,50 @@ public class DeliveryAssignmentController {
         } finally {
             response.setTimestamp(LocalDateTime.now());
             LOGGER.info("END [REST-LAYER] [RequestId={}] createDeliveryAssignment: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<ResponseDto<DeliveryAssignmentSummaryDto>> getSummary(
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] getSummary", requestId);
+
+        ResponseDto<DeliveryAssignmentSummaryDto> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+
+        try {
+            // Service returns VO — DTO built here at REST boundary only
+            DeliveryAssignmentSummaryVo summaryVo =
+                    deliveryAssignmentService.getSummary(requestId);
+
+            if (summaryVo == null) {
+                response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                response.setResponseMessage("Failed to get summary");
+                response.setData(null);
+
+            } else {
+                response.setResponseCode(HttpStatus.OK.value());
+                response.setResponseMessage("Summary retrieved successfully");
+                response.setData(new DeliveryAssignmentSummaryDto(summaryVo));
+            }
+
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to get summary");
+            response.setData(null);
+
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] getSummary: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] getSummary: response={}|timeTaken={}",
                     requestId, response, CommonUtils.getExecutionTime(startTime));
         }
 

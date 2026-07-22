@@ -1,4 +1,4 @@
-package com.logistic.platform.dto;
+package com.logistic.platform.dto.delivery;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
