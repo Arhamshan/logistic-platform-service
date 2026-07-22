@@ -13,4 +13,9 @@ public interface DeliveryAssignmentRepository {
     public default DeliveryAssignmentSummaryVo findSummary(String requestId){
         return null;
     }
+
+    public default Boolean updateStatus(Long driverId, Long consItemId, String status, String requestId){
+        return null;
+    }
+
 }

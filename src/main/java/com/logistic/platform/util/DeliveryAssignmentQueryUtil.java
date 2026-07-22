@@ -34,4 +34,15 @@ public class DeliveryAssignmentQueryUtil {
 
         return query.toString();
     }
+
+    public static String updateStatusByDriverIdAndConsItemIdQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" UPDATE \"DeliveryAssignments\" ");
+        query.append(" SET status = ?, ");
+        query.append("     updated_date = CURRENT_TIMESTAMP ");
+        query.append(" WHERE driver_user_id = ? ");
+        query.append(" AND cons_item_id = ? ");
+
+        return query.toString();
+    }
 }
