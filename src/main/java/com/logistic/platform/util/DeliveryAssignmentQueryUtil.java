@@ -25,7 +25,7 @@ public class DeliveryAssignmentQueryUtil {
         query.append("      WHERE status = 'IN_TRANSIT') ");
         query.append("          AS total_intransit_items, ");
         query.append("     (SELECT COUNT(*) FROM \"DeliveryAssignments\" ");
-        query.append("      WHERE assigned_datetime >= CURRENT_DATE ");
+        query.append("      WHERE assigned_datetime < CURRENT_DATE ");
         query.append("      AND assigned_datetime <= CURRENT_DATE + INTERVAL '1 day') ");
         query.append("          AS today_assignments, ");
         query.append("     (SELECT COUNT(*) FROM \"Users\" ");
