@@ -182,6 +182,7 @@ public class ItemQueryUtil {
         query.append("     i.status, ");
         query.append("     i.weight, ");
         query.append("     i.current_location_code, ");
+        query.append("     c.consignment_id, ");
         query.append("     dc.name         AS dest_name, ");
         query.append("     dc.address_line1 AS dest_address_line1, ");
         query.append("     dc.address_line2 AS dest_address_line2, ");
@@ -193,6 +194,35 @@ public class ItemQueryUtil {
         query.append(" JOIN \"Consignments\" c ON i.cons_id = c.id ");
         query.append(" LEFT JOIN \"Contacts\" dc ON c.destination_contact_id = dc.id ");
         query.append(" WHERE i.status = ? ");
+        query.append(" ORDER BY i.id ASC ");
+
+        return query.toString();
+    }
+
+    public static String findAllByStatusSkipAssignedQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT ");
+        query.append("     i.id, ");
+        query.append("     i.item_id, ");
+        query.append("     i.status, ");
+        query.append("     i.weight, ");
+        query.append("     i.current_location_code, ");
+        query.append("     c.consignment_id, ");
+        query.append("     dc.name         AS dest_name, ");
+        query.append("     dc.address_line1 AS dest_address_line1, ");
+        query.append("     dc.address_line2 AS dest_address_line2, ");
+        query.append("     dc.state         AS dest_state, ");
+        query.append("     dc.suburb        AS dest_suburb, ");
+        query.append("     dc.postcode      AS dest_postcode, ");
+        query.append("     dc.country       AS dest_country ");
+        query.append(" FROM \"Items\" i ");
+        query.append(" JOIN \"Consignments\" c ON i.cons_id = c.id ");
+        query.append(" LEFT JOIN \"Contacts\" dc ON c.destination_contact_id = dc.id ");
+        query.append(" WHERE i.status = ? ");
+        query.append("   AND NOT EXISTS ( ");
+        query.append("       SELECT 1 FROM \"DeliveryAssignments\" da ");
+        query.append("       WHERE da.cons_item_id = i.id ");
+        query.append("   ) ");
         query.append(" ORDER BY i.id ASC ");
 
         return query.toString();

@@ -406,25 +406,29 @@ public class ItemServiceImpl implements ItemService {
         return isUpdated;
     }
 
+
     @Override
-    public List<Item> getItemsByStatus(String status, String requestId) {
+    public List<Item> getItemsByStatus(String status, Boolean isSkipDriverAssignment, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemsByStatus: status={}",
-                requestId, status);
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemsByStatus: status={}|isSkipDriverAssignment={}",
+                requestId, status, isSkipDriverAssignment);
 
         List<Item> result = null;
 
         try {
-            // Validate status exists in enum before querying
             try {
                 ItemStatus.valueOf(status.toUpperCase());
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("Invalid item status: " + status);
             }
 
-            result = itemReaderRepository.findAllByStatus(status.toUpperCase(), requestId);
+            if (Boolean.TRUE.equals(isSkipDriverAssignment)) {
+                result = itemReaderRepository.findAllByStatusSkipAssigned(status.toUpperCase(), requestId);
+            } else {
+                result = itemReaderRepository.findAllByStatus(status.toUpperCase(), requestId);
+            }
 
             if (result == null || result.isEmpty()) {
                 LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getItemsByStatus: No items found for status={}",

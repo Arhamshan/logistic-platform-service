@@ -190,6 +190,7 @@ public class ItemController {
     @GetMapping("/{status}")
     public ResponseEntity<ResponseDto<List<GetItemResponseDto>>> getItemsByStatus(
             @PathVariable("status") String status,
+            @RequestParam(value = "isSkipDriverAssignment", required = false) Boolean isSkipDriverAssignment,
             @RequestParam("requestId") String requestId) {
 
         long startTime = System.currentTimeMillis();
@@ -205,7 +206,7 @@ public class ItemController {
             LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] getItemsByStatus: usernameFromAuthHeader={}",
                     requestId, auth.getName());
 
-            List<Item> items = itemService.getItemsByStatus(status, requestId);
+            List<Item> items = itemService.getItemsByStatus(status, isSkipDriverAssignment, requestId);
 
             if (items == null || items.isEmpty()) {
                 response.setResponseCode(HttpStatus.BAD_REQUEST.value());
@@ -213,7 +214,6 @@ public class ItemController {
                 response.setData(null);
 
             } else {
-                // Entity → DTO conversion at REST boundary only
                 List<GetItemResponseDto> data = items.stream()
                         .map(GetItemResponseDto::new)
                         .collect(Collectors.toList());
@@ -223,13 +223,13 @@ public class ItemController {
                 response.setData(data);
             }
 
-        } catch (IllegalArgumentException e) {
-            response.setResponseCode(HttpStatus.BAD_REQUEST.value());
-            response.setResponseMessage("Invalid item status: " + status);
+        } catch (Exception e) {
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setResponseMessage("Failed to get items");
             response.setData(null);
 
-            LOGGER.warn("WARN [REST-LAYER] [RequestId={}] getItemsByStatus: invalid status={}",
-                    requestId, status);
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] getItemsByStatus: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
 
         } finally {
             response.setTimestamp(LocalDateTime.now());
