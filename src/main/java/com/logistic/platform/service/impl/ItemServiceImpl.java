@@ -408,12 +408,13 @@ public class ItemServiceImpl implements ItemService {
 
 
     @Override
-    public List<Item> getItemsByStatus(String status, Boolean isSkipDriverAssignment, String requestId) {
+    public List<Item> getItemsByStatus(String status, Boolean isSkipDriverAssignment, int pageNumber, int pageSize,
+                                       String sortBy, String sortDir, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemsByStatus: status={}|isSkipDriverAssignment={}",
-                requestId, status, isSkipDriverAssignment);
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemsByStatus: status={}|isSkipDriverAssignment={}|pageNumber={}|pageSize={}|sortBy={}|sortDir={}",
+                requestId, status, isSkipDriverAssignment, pageNumber, pageSize, sortBy, sortDir);
 
         List<Item> result = null;
 
@@ -424,11 +425,7 @@ public class ItemServiceImpl implements ItemService {
                 throw new IllegalArgumentException("Invalid item status: " + status);
             }
 
-            if (Boolean.TRUE.equals(isSkipDriverAssignment)) {
-                result = itemReaderRepository.findAllByStatusSkipAssigned(status.toUpperCase(), requestId);
-            } else {
-                result = itemReaderRepository.findAllByStatus(status.toUpperCase(), requestId);
-            }
+            result = itemReaderRepository.findAllByStatus(status.toUpperCase(), isSkipDriverAssignment, pageNumber, pageSize, sortBy, sortDir, requestId);
 
             if (result == null || result.isEmpty()) {
                 LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getItemsByStatus: No items found for status={}",
@@ -448,6 +445,22 @@ public class ItemServiceImpl implements ItemService {
         }
 
         return result;
+    }
+
+    @Override
+    public Integer getCountOfItemsByStatus(String status, Boolean isSkipDriverAssignment, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getCountOfItemsByStatus: status={}|isSkipDriverAssignment={}", requestId, status, isSkipDriverAssignment);
+
+        Integer allCount = itemReaderRepository.findCountOfItemsByStatus(status, isSkipDriverAssignment, requestId);
+
+
+        LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getCountOfItemsByStatus: timeTaken={}",
+                requestId, CommonUtils.getExecutionTime(startTime));
+
+        return allCount;
     }
 
     @Override

@@ -4,9 +4,9 @@ import com.logistic.common.dto.ResponseDto;
 import com.logistic.common.entity.Event;
 import com.logistic.common.entity.Item;
 import com.logistic.common.entity.Pod;
-import com.logistic.common.enums.EventType;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.platform.dto.item.GetItemDto;
 import com.logistic.platform.dto.item.GetItemResponseDto;
 import com.logistic.platform.dto.pod.PodResponseDto;
 import com.logistic.platform.service.PodService;
@@ -23,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -188,25 +189,30 @@ public class ItemController {
     }
 
     @GetMapping("/{status}")
-    public ResponseEntity<ResponseDto<List<GetItemResponseDto>>> getItemsByStatus(
+    public ResponseEntity<ResponseDto<GetItemResponseDto>> getItemsByStatus(
             @PathVariable("status") String status,
             @RequestParam(value = "isSkipDriverAssignment", required = false) Boolean isSkipDriverAssignment,
+            @RequestParam(defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(defaultValue = "10", required = false) int pageSize,
+            @RequestParam(defaultValue = "id", required = false) String sortBy,
+            @RequestParam(defaultValue = "asc", required = false) String sortDir,
             @RequestParam("requestId") String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REST-LAYER] [RequestId={}] getItemsByStatus: status={}",
-                requestId, status);
+        LOGGER.info("START [REST-LAYER] [RequestId={}] getItemsByStatus: status={}|pageNumber={}|pageSize={}|sortBy={}|sortDir={}|isSkipDriverAssignment={}",
+                requestId, status, pageNumber, pageSize, sortBy, sortDir, isSkipDriverAssignment);
 
-        ResponseDto<List<GetItemResponseDto>> response = new ResponseDto<>();
+        ResponseDto<GetItemResponseDto> response = new ResponseDto<>();
         response.setRequestId(requestId);
 
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] getItemsByStatus: usernameFromAuthHeader={}",
-                    requestId, auth.getName());
+            LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] getItemsByStatus: usernameFromAuthHeader={}", requestId, auth.getName());
 
-            List<Item> items = itemService.getItemsByStatus(status, isSkipDriverAssignment, requestId);
+            List<Item> items = itemService.getItemsByStatus(status, isSkipDriverAssignment, pageNumber, pageSize, sortBy, sortDir, requestId);
+
+            Integer countOfItemsByStatus = itemService.getCountOfItemsByStatus(status, isSkipDriverAssignment, requestId);
 
             if (items == null || items.isEmpty()) {
                 response.setResponseCode(HttpStatus.BAD_REQUEST.value());
@@ -214,13 +220,15 @@ public class ItemController {
                 response.setData(null);
 
             } else {
-                List<GetItemResponseDto> data = items.stream()
-                        .map(GetItemResponseDto::new)
+                List<GetItemDto> data = items.stream()
+                        .map(GetItemDto::new)
                         .collect(Collectors.toList());
+
+                GetItemResponseDto responseDto = new GetItemResponseDto(countOfItemsByStatus, data);
 
                 response.setResponseCode(HttpStatus.OK.value());
                 response.setResponseMessage("Items retrieved successfully");
-                response.setData(data);
+                response.setData(responseDto);
             }
 
         } catch (Exception e) {
@@ -234,14 +242,14 @@ public class ItemController {
         } finally {
             response.setTimestamp(LocalDateTime.now());
             LOGGER.info("END [REST-LAYER] [RequestId={}] getItemsByStatus: response={}|timeTaken={}",
-                    requestId, response, CommonUtils.getExecutionTime(startTime));
+                    requestId, CommonUtils.convertToString(response), CommonUtils.getExecutionTime(startTime));
         }
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/driver/{driverId}")
-    public ResponseEntity<ResponseDto<List<GetItemResponseDto>>> getItemsByDriverId(
+    public ResponseEntity<ResponseDto<List<GetItemDto>>> getItemsByDriverId(
             @PathVariable("driverId") Long driverId,
             @RequestParam("requestId") String requestId) {
 
@@ -250,7 +258,7 @@ public class ItemController {
         LOGGER.info("START [REST-LAYER] [RequestId={}] getItemsByDriverId: driverId={}",
                 requestId, driverId);
 
-        ResponseDto<List<GetItemResponseDto>> response = new ResponseDto<>();
+        ResponseDto<List<GetItemDto>> response = new ResponseDto<>();
         response.setRequestId(requestId);
 
         try {
@@ -266,8 +274,8 @@ public class ItemController {
                 response.setData(null);
 
             } else {
-                List<GetItemResponseDto> data = items.stream()
-                        .map(GetItemResponseDto::new)
+                List<GetItemDto> data = items.stream()
+                        .map(GetItemDto::new)
                         .collect(Collectors.toList());
 
                 response.setResponseCode(HttpStatus.OK.value());

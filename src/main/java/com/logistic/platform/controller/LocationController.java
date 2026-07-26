@@ -4,10 +4,7 @@ package com.logistic.platform.controller;
 import com.logistic.common.dto.ResponseDto;
 import com.logistic.common.entity.Location;
 import com.logistic.common.util.CommonUtils;
-import com.logistic.platform.dto.location.GetAllLocationResponseDto;
-import com.logistic.platform.dto.location.LocationRequestDto;
-import com.logistic.platform.dto.location.LocationResponseDto;
-import com.logistic.platform.dto.location.UpdateLocationRequestDto;
+import com.logistic.platform.dto.location.*;
 import com.logistic.platform.service.LocationService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -89,14 +86,20 @@ public class LocationController {
     }
 
     @GetMapping
-    public ResponseEntity<ResponseDto<List<GetAllLocationResponseDto>>> getAllLocations(
+    public ResponseEntity<ResponseDto<GetAllLocationsResponseDto>> getAllLocations(
+            @RequestParam(defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(defaultValue = "10", required = false) int pageSize,
+            @RequestParam(defaultValue = "id", required = false) String sortBy,
+            @RequestParam(defaultValue = "asc", required = false) String sortDir,
+            @RequestParam(required = false) Boolean isGetAllLocations,
             @RequestParam("requestId") String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REST-LAYER] [RequestId={}] getAllLocations: ", requestId);
+        LOGGER.info("START [REST-LAYER] [RequestId={}] getAllLocations: pageNumber={}|pageSize={}|sortBy={}|sortDir={}",
+                requestId, pageNumber, pageSize, sortBy, sortDir);
 
-        ResponseDto<List<GetAllLocationResponseDto>> response = new ResponseDto<>();
+        ResponseDto<GetAllLocationsResponseDto> response = new ResponseDto<>();
         response.setRequestId(requestId);
 
         try {
@@ -104,16 +107,18 @@ public class LocationController {
             LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] getAllLocations: usernameFromAuthHeader={}", requestId, auth.getName());
 
             // Service returns List<Location> (entities), not DTOs
-            List<Location> locations = service.getAllLocations(requestId);
+            List<Location> locations = service.getAllLocations(pageNumber, pageSize, sortBy, sortDir, isGetAllLocations, requestId);
 
             if (locations == null) {
                 locations = List.of();
             }
 
-            if(locations != null && !locations.isEmpty()) {
+            Integer count = Boolean.TRUE.equals(isGetAllLocations) ? locations.size() : service.getCountOfAllLocations(requestId);
+
+            if(!locations.isEmpty()) {
                 // Convert entities to DTOs in the CONTROLLER layer
-                List<GetAllLocationResponseDto> locationDtos = locations.stream()
-                        .map(location -> new GetAllLocationResponseDto(
+                List<GetAllLocationDto> locationDtos = locations.stream()
+                        .map(location -> new GetAllLocationDto(
                                 location.getId(),
                                 location.getName(),
                                 location.getLocationCode(),
@@ -124,14 +129,15 @@ public class LocationController {
                                 location.getLongitude()))
                         .toList();
 
+                GetAllLocationsResponseDto responseDto = new GetAllLocationsResponseDto(count, locationDtos);
+
                 response.setResponseCode(HttpStatus.OK.value());
                 response.setResponseMessage("Locations fetched successfully");
-                response.setData(locationDtos);
+                response.setData(responseDto);
 
             } else {
                 response.setResponseCode(HttpStatus.NOT_FOUND.value());
                 response.setResponseMessage("No locations found");
-                response.setData(List.of());
             }
 
         } catch (Exception e) {
@@ -224,7 +230,7 @@ public class LocationController {
     }
 
     @GetMapping("/{locationCode}")
-    public ResponseEntity<ResponseDto<GetAllLocationResponseDto>> getLocationByCode(
+    public ResponseEntity<ResponseDto<GetAllLocationDto>> getLocationByCode(
             @PathVariable("locationCode") String locationCode,
             @RequestParam("requestId") String requestId) {
 
@@ -233,7 +239,7 @@ public class LocationController {
         LOGGER.info("START [REST-LAYER] [RequestId={}] getLocationByCode: locationCode={}",
                 requestId, locationCode);
 
-        ResponseDto<GetAllLocationResponseDto> response = new ResponseDto<>();
+        ResponseDto<GetAllLocationDto> response = new ResponseDto<>();
         response.setRequestId(requestId);
 
         try {
@@ -243,7 +249,7 @@ public class LocationController {
             Location location = service.getLocationByCode(locationCode, requestId);  //return single Location
 
             if (location != null) {
-                GetAllLocationResponseDto dto = new GetAllLocationResponseDto(location);
+                GetAllLocationDto dto = new GetAllLocationDto(location);
 
                 response.setResponseCode(HttpStatus.OK.value());
                 response.setResponseMessage("Location retrieved successfully");

@@ -1,51 +1,18 @@
 package com.logistic.platform.dto.item;
 
-import com.logistic.common.entity.Contact;
-import com.logistic.common.entity.Item;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class GetItemResponseDto {
 
-    private Long id;
-    private String itemId;
-    private String status;
-    private String itemWeight;
-    private String currentLocationCode;
-    private String consignmentId;
+    private Integer totalItems;
 
-    // Destination contact fields
-    private String destinationContactName;
-    private String destinaionAddressLine1;
-    private String destinaionAddressLine2;
-    private String destinaionState;
-    private String destinaionSuburb;
-    private String destinaionPostCode;
-    private String destinaionCountry;
+    private List<GetItemDto> items;
 
-    public GetItemResponseDto(Item item) {
-        this.id                  = item.getId();
-        this.itemId              = item.getItemId();
-        this.status              = item.getStatus() != null ? item.getStatus().name() : null;
-        this.itemWeight          = item.getWeight() != null ? String.valueOf(item.getWeight()) : null;
-        this.currentLocationCode = item.getCurrentLocationCode();
-        this.consignmentId      = item.getConsignment() != null ? item.getConsignment().getConsignmentId() : null;
-
-        // Destination contact via consignment → destinationContact
-        if (item.getConsignment() != null
-                && item.getConsignment().getDestinationContact() != null) {
-            Contact dest = item.getConsignment().getDestinationContact();
-            this.destinationContactName = dest.getName();
-            this.destinaionAddressLine1 = dest.getAddressLine1();
-            this.destinaionAddressLine2 = dest.getAddressLine2();
-            this.destinaionState        = dest.getState();
-            this.destinaionSuburb       = dest.getSuburb();
-            this.destinaionPostCode     = dest.getPostcode();
-            this.destinaionCountry      = dest.getCountry();
-        }
-    }
 }
