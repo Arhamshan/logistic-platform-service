@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetAllLocationResponseDto {
+public class GetAllLocationDto {
     private Long id;
 
     private String name;
@@ -28,7 +28,7 @@ public class GetAllLocationResponseDto {
     private String longitude;
 
 
-    public GetAllLocationResponseDto(Location location) {
+    public GetAllLocationDto(Location location) {
         this.id = location.getId();
         this.name = location.getName();
         this.locationCode = location.getLocationCode();

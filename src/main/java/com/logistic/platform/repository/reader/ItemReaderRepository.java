@@ -285,19 +285,22 @@ public class ItemReaderRepository implements ItemRepository {
         return itemsList;
     }
 
-    public List<Item> findAllByStatus(String status, String requestId) {
+    @Override
+    public List<Item> findAllByStatus(String status, Boolean isSkipDriverAssignment, int pageNumber, int pageSize, String sortBy, String sortDir, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllByStatus: status={}",
-                requestId, status);
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllByStatus: status={}|Boolean isSkipDriverAssignment={}|pageNumber={}|pageSize={}|sortBy={}|sortDir={}",
+                requestId, status, isSkipDriverAssignment, pageNumber, pageSize, sortBy, sortDir);
 
         List<Item> result = null;
 
         try {
-            String sql = ItemQueryUtil.findAllByStatusQuery();
+            int offSet = pageNumber * pageSize;
 
-            result = jdbcTemplate.query(sql, new Object[]{status},
+            String sql = ItemQueryUtil.findAllByStatusQuery(status, sortBy, sortDir, pageSize, offSet, Boolean.FALSE, isSkipDriverAssignment);
+
+            result = jdbcTemplate.query(sql,
                     (rs, rowNum) -> {
 
                         // ── Destination contact ──
@@ -333,70 +336,42 @@ public class ItemReaderRepository implements ItemRepository {
             throw new RuntimeException("Failed to fetch items by status", e);
 
         } finally {
-            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findAllByStatus: count={}|timeTaken={}",
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findAllByStatus: result={}|timeTaken={}",
                     requestId,
-                    result != null ? result.size() : 0,
+                    CommonUtils.convertToString(result),
                     CommonUtils.getExecutionTime(startTime));
         }
 
         return result;
     }
 
-    public List<Item> findAllByStatusSkipAssigned(String status, String requestId) {
+    @Override
+    public Integer findCountOfItemsByStatus(String status, Boolean isSkipDriverAssignment, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllByStatusSkipAssigned: status={}",
-                requestId, status);
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findCountOfItemsByStatus: status={}|isSkipDriverAssignment={}",
+                requestId, status, isSkipDriverAssignment);
 
-        List<Item> result = null;
+        Integer total = 0;
 
         try {
-            String sql = ItemQueryUtil.findAllByStatusSkipAssignedQuery();
 
-            result = jdbcTemplate.query(sql, new Object[]{status},
-                    (rs, rowNum) -> {
+            String sql = ItemQueryUtil.findAllByStatusQuery(status, null, null, 0, 0, Boolean.TRUE, isSkipDriverAssignment);
 
-                        // ── Destination contact ──
-                        Contact destContact = new Contact();
-                        destContact.setName(rs.getString("dest_name"));
-                        destContact.setAddressLine1(rs.getString("dest_address_line1"));
-                        destContact.setAddressLine2(rs.getString("dest_address_line2"));
-                        destContact.setState(rs.getString("dest_state"));
-                        destContact.setSuburb(rs.getString("dest_suburb"));
-                        destContact.setPostcode(rs.getString("dest_postcode"));
-                        destContact.setCountry(rs.getString("dest_country"));
-
-                        // ── Consignment with destination contact ──
-                        Consignment consignment = new Consignment();
-                        consignment.setConsignmentId(rs.getString("consignment_id"));
-                        consignment.setDestinationContact(destContact);
-
-                        // ── Item ──
-                        Item item = new Item();
-                        item.setId(rs.getLong("id"));
-                        item.setItemId(rs.getString("item_id"));
-                        item.setStatus(ItemStatus.valueOf(rs.getString("status")));
-                        item.setWeight(rs.getFloat("weight"));
-                        item.setCurrentLocationCode(rs.getString("current_location_code"));
-                        item.setConsignment(consignment);
-
-                        return item;
-                    });
+            total = jdbcTemplate.queryForObject(sql, Integer.class);
 
         } catch (Exception e) {
-            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findAllByStatusSkipAssigned: Ex={}|Trace={}",
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findCountOfItemsByStatus: Ex={}|Trace={}",
                     requestId, e.getMessage(), e.getStackTrace());
-            throw new RuntimeException("Failed to fetch items by status (skip assigned)", e);
+            throw new RuntimeException("Failed to fetch total count ", e);
 
         } finally {
-            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findAllByStatusSkipAssigned: count={}|timeTaken={}",
-                    requestId,
-                    result != null ? result.size() : 0,
-                    CommonUtils.getExecutionTime(startTime));
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findCountOfItemsByStatus: count={}|timeTaken={}",
+                    requestId, total, CommonUtils.getExecutionTime(startTime));
         }
 
-        return result;
+        return total;
     }
 
     public List<Item> findAllByDriverId(Long driverId, String requestId) {

@@ -90,17 +90,18 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public List<Location> getAllLocations(String requestId) {
+    public List<Location> getAllLocations(int pageNumber, int pageSize, String sortBy, String sortDir, Boolean isGetAllLocations, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getAllLocations: ", requestId);
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getAllLocations: pageNumber={}|pageSize={}|sortBy={}|sortDir={}|isGetAllLocations={}",
+                requestId, pageNumber, pageSize, sortBy, sortDir, isGetAllLocations);
 
         List<Location> locationList = null;
 
         try {
 
-            locationList = readerRepository.findAllLocations(requestId);
+            locationList = readerRepository.findAllLocations(pageNumber, pageSize, sortBy, sortDir, isGetAllLocations, requestId);
         } catch (Exception e) {
 
             LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getAllLocations: Ex={}|Trace={}",
@@ -115,6 +116,22 @@ public class LocationServiceImpl implements LocationService {
         }
 
         return  locationList != null ? locationList : List.of();
+    }
+
+    @Override
+    public Integer getCountOfAllLocations(String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getCountOfAllLocations:", requestId);
+
+        Integer allCount = readerRepository.findAllLocationsCount(requestId);
+
+
+        LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getCountOfAllLocations: timeTaken={}",
+                requestId, CommonUtils.getExecutionTime(startTime));
+
+        return allCount;
     }
 
     @Override
