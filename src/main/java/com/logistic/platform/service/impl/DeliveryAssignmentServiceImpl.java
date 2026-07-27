@@ -3,12 +3,14 @@ package com.logistic.platform.service.impl;
 import com.logistic.common.entity.DeliveryAssignment;
 import com.logistic.common.entity.Event;
 import com.logistic.common.enums.EventType;
+import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.dto.delivery.DeliveryAssignmentSummaryDto;
 import com.logistic.platform.repository.reader.DeliveryAssignmentReaderRepository;
 import com.logistic.platform.repository.writer.DeliveryAssignmentWriterRepository;
 import com.logistic.platform.service.DeliveryAssignmentService;
 import com.logistic.platform.service.EventService;
+import com.logistic.platform.service.ItemService;
 import com.logistic.platform.vo.DeliveryAssignmentSummaryVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,13 +27,16 @@ public class DeliveryAssignmentServiceImpl implements DeliveryAssignmentService 
     private final DeliveryAssignmentWriterRepository writerRepository;
     private final DeliveryAssignmentReaderRepository readerRepository;
     private final EventService eventService;
+    private final ItemService itemService;
 
     public DeliveryAssignmentServiceImpl(DeliveryAssignmentWriterRepository writerRepository,
                                          DeliveryAssignmentReaderRepository readerRepository,
-                                         EventService eventService) {
+                                         EventService eventService,
+                                         ItemService itemService) {
         this.writerRepository = writerRepository;
         this.readerRepository = readerRepository;
         this.eventService = eventService;
+        this.itemService = itemService;
     }
 
     @Override
@@ -98,10 +103,15 @@ public class DeliveryAssignmentServiceImpl implements DeliveryAssignmentService 
             result = readerRepository.findSummary(requestId);
 
             if (result == null) {
-                LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getSummary: No summary data returned",
+                LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getSummary: No summary data returned",
                         requestId);
-            }
 
+            } else {
+
+                Integer countOfItemsByStatus = itemService.getCountOfItemsByStatus(ItemStatus.IN_TRANSIT.name(), Boolean.TRUE, requestId);
+
+                result.setTotalPendingAssignment(countOfItemsByStatus.longValue());
+            }
         } catch (Exception e) {
             LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getSummary: Ex={}|Trace={}",
                     requestId, e.getMessage(), e.getStackTrace());
