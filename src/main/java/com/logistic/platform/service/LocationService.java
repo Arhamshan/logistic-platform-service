@@ -9,7 +9,9 @@ public interface LocationService {
 
     public String generateLocationCode(String requestId);
 
-    List<Location> getAllLocations(String requestId);
+    List<Location> getAllLocations(int pageNumber, int pageSize, String sortBy, String sortDir, Boolean isGetAllLocations, String requestId);
+
+    Integer getCountOfAllLocations(String requestId);
 
     Boolean updateLocation(Location location, String requestId);
 

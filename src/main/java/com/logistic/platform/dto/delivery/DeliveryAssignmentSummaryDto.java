@@ -13,11 +13,13 @@ public class DeliveryAssignmentSummaryDto {
     private Long totalIntransitItems;
     private Long todayAssignments;
     private Long totalDrivers;
+    private Long totalPendingAssignment;
 
     // VO → DTO conversion at REST boundary only
     public DeliveryAssignmentSummaryDto(DeliveryAssignmentSummaryVo vo) {
         this.totalIntransitItems = vo.getTotalIntransitItems();
         this.todayAssignments    = vo.getTodayAssignments();
         this.totalDrivers        = vo.getTotalDrivers();
+        this.totalPendingAssignment = vo.getTotalPendingAssignment();
     }
 }

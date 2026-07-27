@@ -42,19 +42,34 @@ public class LocationQueryUtil {
         return query.toString();
     }
 
-    public static String findAllLocationsQuery() {
+    public static String findAllLocationsQuery(String sortBy, String sortDir, int pageSize, int offSet,
+                                               Boolean isCount, Boolean isGetAllLocations) {
         StringBuilder query = new StringBuilder();
         query.append("SELECT ");
-        query.append(" l.id, ");
-        query.append(" l.name, ");
-        query.append(" l.location_code, ");
-        query.append(" l.country, ");
-        query.append(" l.type, ");
-        query.append(" l.city, ");
-        query.append(" l.longitude, ");
-        query.append(" l.latitude ");
+
+        if (Boolean.TRUE.equals(isCount)) {
+            query.append("     count(*) ");
+        } else {
+            query.append(" l.id, ");
+            query.append(" l.name, ");
+            query.append(" l.location_code, ");
+            query.append(" l.country, ");
+            query.append(" l.type, ");
+            query.append(" l.city, ");
+            query.append(" l.longitude, ");
+            query.append(" l.latitude ");
+        }
         query.append("FROM ");
         query.append(" \"Locations\" l ");
+
+        if (Boolean.FALSE.equals(isCount)) {
+            query.append(" ORDER BY " + sortBy + " " + sortDir.toUpperCase() + " ");
+
+            if (!Boolean.TRUE.equals(isGetAllLocations)) {
+                query.append(" LIMIT " + pageSize);
+                query.append(" OFFSET " + offSet);
+            }
+        }
 
         return query.toString();
     }

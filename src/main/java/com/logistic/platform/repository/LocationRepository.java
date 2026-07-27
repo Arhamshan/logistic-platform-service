@@ -15,9 +15,13 @@ public interface LocationRepository {
         return null;
     }
 
-    public default List<Location> findAllLocations(String requestId){
+    public default List<Location> findAllLocations(int pageNumber, int pageSize, String sortBy, String sortDir, Boolean isGetAllLocations, String requestId){
         return null;
     };
+
+    public default Integer findAllLocationsCount(String requestId) {
+        return null;
+    }
 
     public default Boolean update(Location location, String requestId){
         return false;
