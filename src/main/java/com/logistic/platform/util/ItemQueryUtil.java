@@ -266,7 +266,6 @@ public class ItemQueryUtil {
         query.append(" JOIN \"Consignments\" c ON i.cons_id = c.id ");
         query.append(" LEFT JOIN \"Contacts\" dc ON c.destination_contact_id = dc.id ");
         query.append(" WHERE da.driver_user_id = ? ");
-        query.append(" AND i.status != 'DELIVERED' ");
         query.append(" AND i.status = ? ");
         query.append(" ORDER BY i.id ASC ");
 
