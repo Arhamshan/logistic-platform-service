@@ -251,12 +251,13 @@ public class ItemController {
     @GetMapping("/driver/{driverId}")
     public ResponseEntity<ResponseDto<List<GetItemDto>>> getItemsByDriverId(
             @PathVariable("driverId") Long driverId,
-            @RequestParam("requestId") String requestId) {
+            @RequestParam("requestId") String requestId,
+            @RequestParam(value = "status", required = false) String status) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REST-LAYER] [RequestId={}] getItemsByDriverId: driverId={}",
-                requestId, driverId);
+        LOGGER.info("START [REST-LAYER] [RequestId={}] getItemsByDriverId: driverId={}|status={}",
+                requestId, driverId, status);
 
         ResponseDto<List<GetItemDto>> response = new ResponseDto<>();
         response.setRequestId(requestId);
@@ -266,7 +267,7 @@ public class ItemController {
             LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] getItemsByDriverId: usernameFromAuthHeader={}",
                     requestId, auth.getName());
 
-            List<Item> items = itemService.getItemsByDriverId(driverId, requestId);
+            List<Item> items = itemService.getItemsByDriverId(driverId, status, requestId);
 
             if (items == null || items.isEmpty()) {
                 response.setResponseCode(HttpStatus.BAD_REQUEST.value());

@@ -52,7 +52,7 @@ public interface ItemRepository {
         return null;
     }
 
-    public default List<Item> findAllByDriverId(Long driverId, String requestId){
+    public default List<Item> findAllByDriverId(Long driverId, String status, String requestId){
         return null;
     }
 }

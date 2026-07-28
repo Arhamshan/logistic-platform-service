@@ -34,6 +34,6 @@ public interface ItemService {
 
     Integer getCountOfItemsByStatus(String status, Boolean isSkipDriverAssignment, String requestId);
 
-    List<Item> getItemsByDriverId(Long driverId, String requestId);
+    List<Item> getItemsByDriverId(Long driverId, String status, String requestId);
 
 }
