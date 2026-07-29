@@ -285,19 +285,22 @@ public class ItemReaderRepository implements ItemRepository {
         return itemsList;
     }
 
-    public List<Item> findAllByStatus(String status, String requestId) {
+    @Override
+    public List<Item> findAllByStatus(String status, Boolean isSkipDriverAssignment, int pageNumber, int pageSize, String sortBy, String sortDir, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllByStatus: status={}",
-                requestId, status);
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllByStatus: status={}|Boolean isSkipDriverAssignment={}|pageNumber={}|pageSize={}|sortBy={}|sortDir={}",
+                requestId, status, isSkipDriverAssignment, pageNumber, pageSize, sortBy, sortDir);
 
         List<Item> result = null;
 
         try {
-            String sql = ItemQueryUtil.findAllByStatusQuery();
+            int offSet = pageNumber * pageSize;
 
-            result = jdbcTemplate.query(sql, new Object[]{status},
+            String sql = ItemQueryUtil.findAllByStatusQuery(status, sortBy, sortDir, pageSize, offSet, Boolean.FALSE, isSkipDriverAssignment);
+
+            result = jdbcTemplate.query(sql,
                     (rs, rowNum) -> {
 
                         // ── Destination contact ──
@@ -312,6 +315,7 @@ public class ItemReaderRepository implements ItemRepository {
 
                         // ── Consignment with destination contact ──
                         Consignment consignment = new Consignment();
+                        consignment.setConsignmentId(rs.getString("consignment_id"));
                         consignment.setDestinationContact(destContact);
 
                         // ── Item ──
@@ -332,28 +336,67 @@ public class ItemReaderRepository implements ItemRepository {
             throw new RuntimeException("Failed to fetch items by status", e);
 
         } finally {
-            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findAllByStatus: count={}|timeTaken={}",
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findAllByStatus: result={}|timeTaken={}",
                     requestId,
-                    result != null ? result.size() : 0,
+                    CommonUtils.convertToString(result),
                     CommonUtils.getExecutionTime(startTime));
         }
 
         return result;
     }
 
-    public List<Item> findAllByDriverId(Long driverId, String requestId) {
+    @Override
+    public Integer findCountOfItemsByStatus(String status, Boolean isSkipDriverAssignment, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllByDriverId: driverId={}",
-                requestId, driverId);
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findCountOfItemsByStatus: status={}|isSkipDriverAssignment={}",
+                requestId, status, isSkipDriverAssignment);
+
+        Integer total = 0;
+
+        try {
+
+            String sql = ItemQueryUtil.findAllByStatusQuery(status, null, null, 0, 0, Boolean.TRUE, isSkipDriverAssignment);
+
+            total = jdbcTemplate.queryForObject(sql, Integer.class);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findCountOfItemsByStatus: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to fetch total count ", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findCountOfItemsByStatus: count={}|timeTaken={}",
+                    requestId, total, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return total;
+    }
+
+    public List<Item> findAllByDriverId(Long driverId, String status, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllByDriverId: driverId={}|status={}",
+                requestId, driverId, status);
 
         List<Item> result = null;
 
         try {
-            String sql = ItemQueryUtil.findAllByDriverIdQuery();
+            // Pick query and params based on whether status is provided
+            String sql;
+            Object[] params;
 
-            result = jdbcTemplate.query(sql, new Object[]{driverId},
+            if (status != null && !status.isBlank()) {
+                sql    = ItemQueryUtil.findAllByDriverIdAndStatusQuery();
+                params = new Object[]{driverId, status.toUpperCase()};
+            } else {
+                sql    = ItemQueryUtil.findAllByDriverIdQuery();
+                params = new Object[]{driverId};
+            }
+
+            result = jdbcTemplate.query(sql, params,
                     (rs, rowNum) -> {
 
                         // ── Destination contact ──
@@ -368,6 +411,7 @@ public class ItemReaderRepository implements ItemRepository {
 
                         // ── Consignment with destination contact ──
                         Consignment consignment = new Consignment();
+                        consignment.setConsignmentId(rs.getString("consignment_id"));
                         consignment.setDestinationContact(destContact);
 
                         // ── Item ──

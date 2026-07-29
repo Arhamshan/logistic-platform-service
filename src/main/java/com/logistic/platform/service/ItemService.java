@@ -29,8 +29,11 @@ public interface ItemService {
 
     Boolean updateItems(List<Item> items, String username, String requestId);
 
-    List<Item> getItemsByStatus(String status, String requestId);
+    List<Item> getItemsByStatus(String status, Boolean isSkipDriverAssignment, int pageNumber, int pageSize,
+                                String sortBy, String sortDir, String requestId);
 
-    List<Item> getItemsByDriverId(Long driverId, String requestId);
+    Integer getCountOfItemsByStatus(String status, Boolean isSkipDriverAssignment, String requestId);
+
+    List<Item> getItemsByDriverId(Long driverId, String status, String requestId);
 
 }

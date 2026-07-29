@@ -406,25 +406,26 @@ public class ItemServiceImpl implements ItemService {
         return isUpdated;
     }
 
+
     @Override
-    public List<Item> getItemsByStatus(String status, String requestId) {
+    public List<Item> getItemsByStatus(String status, Boolean isSkipDriverAssignment, int pageNumber, int pageSize,
+                                       String sortBy, String sortDir, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemsByStatus: status={}",
-                requestId, status);
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemsByStatus: status={}|isSkipDriverAssignment={}|pageNumber={}|pageSize={}|sortBy={}|sortDir={}",
+                requestId, status, isSkipDriverAssignment, pageNumber, pageSize, sortBy, sortDir);
 
         List<Item> result = null;
 
         try {
-            // Validate status exists in enum before querying
             try {
                 ItemStatus.valueOf(status.toUpperCase());
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("Invalid item status: " + status);
             }
 
-            result = itemReaderRepository.findAllByStatus(status.toUpperCase(), requestId);
+            result = itemReaderRepository.findAllByStatus(status.toUpperCase(), isSkipDriverAssignment, pageNumber, pageSize, sortBy, sortDir, requestId);
 
             if (result == null || result.isEmpty()) {
                 LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getItemsByStatus: No items found for status={}",
@@ -447,12 +448,28 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> getItemsByDriverId(Long driverId, String requestId) {
+    public Integer getCountOfItemsByStatus(String status, Boolean isSkipDriverAssignment, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemsByDriverId: driverId={}",
-                requestId, driverId);
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getCountOfItemsByStatus: status={}|isSkipDriverAssignment={}", requestId, status, isSkipDriverAssignment);
+
+        Integer allCount = itemReaderRepository.findCountOfItemsByStatus(status, isSkipDriverAssignment, requestId);
+
+
+        LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getCountOfItemsByStatus: timeTaken={}",
+                requestId, CommonUtils.getExecutionTime(startTime));
+
+        return allCount;
+    }
+
+    @Override
+    public List<Item> getItemsByDriverId(Long driverId, String status, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemsByDriverId: driverId={}|status={}",
+                requestId, driverId, status);
 
         List<Item> result = null;
 
@@ -461,11 +478,20 @@ public class ItemServiceImpl implements ItemService {
                 throw new IllegalArgumentException("Invalid driverId: " + driverId);
             }
 
-            result = itemReaderRepository.findAllByDriverId(driverId, requestId);
+            // Validate status only if provided
+            if (status != null && !status.isBlank()) {
+                try {
+                    ItemStatus.valueOf(status.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Invalid item status: " + status);
+                }
+            }
+
+            result = itemReaderRepository.findAllByDriverId(driverId, status, requestId);
 
             if (result == null || result.isEmpty()) {
-                LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getItemsByDriverId: No items found for driverId={}",
-                        requestId, driverId);
+                LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getItemsByDriverId: No items found for driverId={}|status={}",
+                        requestId, driverId, status);
             }
 
         } catch (Exception e) {

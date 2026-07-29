@@ -174,26 +174,45 @@ public class ItemQueryUtil {
         return query.toString();
     }
 
-    public static String findAllByStatusQuery() {
+    public static String findAllByStatusQuery(String status, String sortBy, String sortDir, int pageSize, int offSet,
+                                              Boolean isCount, Boolean isSkipDriverAssignment) {
         StringBuilder query = new StringBuilder();
         query.append(" SELECT ");
-        query.append("     i.id, ");
-        query.append("     i.item_id, ");
-        query.append("     i.status, ");
-        query.append("     i.weight, ");
-        query.append("     i.current_location_code, ");
-        query.append("     dc.name         AS dest_name, ");
-        query.append("     dc.address_line1 AS dest_address_line1, ");
-        query.append("     dc.address_line2 AS dest_address_line2, ");
-        query.append("     dc.state         AS dest_state, ");
-        query.append("     dc.suburb        AS dest_suburb, ");
-        query.append("     dc.postcode      AS dest_postcode, ");
-        query.append("     dc.country       AS dest_country ");
+
+        if (Boolean.TRUE.equals(isCount)) {
+            query.append("     count(*) ");
+        } else {
+            query.append("     i.id, ");
+            query.append("     i.item_id, ");
+            query.append("     i.status, ");
+            query.append("     i.weight, ");
+            query.append("     i.current_location_code, ");
+            query.append("     c.consignment_id, ");
+            query.append("     dc.name         AS dest_name, ");
+            query.append("     dc.address_line1 AS dest_address_line1, ");
+            query.append("     dc.address_line2 AS dest_address_line2, ");
+            query.append("     dc.state         AS dest_state, ");
+            query.append("     dc.suburb        AS dest_suburb, ");
+            query.append("     dc.postcode      AS dest_postcode, ");
+            query.append("     dc.country       AS dest_country ");
+        }
         query.append(" FROM \"Items\" i ");
         query.append(" JOIN \"Consignments\" c ON i.cons_id = c.id ");
         query.append(" LEFT JOIN \"Contacts\" dc ON c.destination_contact_id = dc.id ");
-        query.append(" WHERE i.status = ? ");
-        query.append(" ORDER BY i.id ASC ");
+        query.append(" WHERE i.status = '" + status + "' ");
+
+        if (Boolean.TRUE.equals(isSkipDriverAssignment)) {
+            query.append("   AND NOT EXISTS ( ");
+            query.append("       SELECT 1 FROM \"DeliveryAssignments\" da ");
+            query.append("       WHERE da.cons_item_id = i.id ");
+            query.append("   ) ");
+        }
+
+        if (Boolean.FALSE.equals(isCount)) {
+            query.append(" ORDER BY " + sortBy + " " + sortDir.toUpperCase() + " ");
+            query.append(" LIMIT " + pageSize);
+            query.append(" OFFSET " + offSet);
+        }
 
         return query.toString();
     }
@@ -206,6 +225,7 @@ public class ItemQueryUtil {
         query.append("     i.status, ");
         query.append("     i.weight, ");
         query.append("     i.current_location_code, ");
+        query.append("     c.consignment_id, ");
         query.append("     dc.name          AS dest_name, ");
         query.append("     dc.address_line1 AS dest_address_line1, ");
         query.append("     dc.address_line2 AS dest_address_line2, ");
@@ -219,6 +239,34 @@ public class ItemQueryUtil {
         query.append(" LEFT JOIN \"Contacts\" dc ON c.destination_contact_id = dc.id ");
         query.append(" WHERE da.driver_user_id = ? ");
         query.append(" AND i.status != 'DELIVERED' ");
+        query.append(" ORDER BY i.id ASC ");
+
+        return query.toString();
+    }
+
+    // With status filter
+    public static String findAllByDriverIdAndStatusQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT ");
+        query.append("     i.id, ");
+        query.append("     i.item_id, ");
+        query.append("     i.status, ");
+        query.append("     i.weight, ");
+        query.append("     i.current_location_code, ");
+        query.append("     c.consignment_id, ");
+        query.append("     dc.name          AS dest_name, ");
+        query.append("     dc.address_line1 AS dest_address_line1, ");
+        query.append("     dc.address_line2 AS dest_address_line2, ");
+        query.append("     dc.state         AS dest_state, ");
+        query.append("     dc.suburb        AS dest_suburb, ");
+        query.append("     dc.postcode      AS dest_postcode, ");
+        query.append("     dc.country       AS dest_country ");
+        query.append(" FROM \"Items\" i ");
+        query.append(" JOIN \"DeliveryAssignments\" da ON da.cons_item_id = i.id ");
+        query.append(" JOIN \"Consignments\" c ON i.cons_id = c.id ");
+        query.append(" LEFT JOIN \"Contacts\" dc ON c.destination_contact_id = dc.id ");
+        query.append(" WHERE da.driver_user_id = ? ");
+        query.append(" AND i.status = ? ");
         query.append(" ORDER BY i.id ASC ");
 
         return query.toString();

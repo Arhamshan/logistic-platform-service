@@ -379,6 +379,22 @@ public class ConsignmentServiceImpl implements ConsignmentService {
     }
 
     @Override
+    public Integer getCountOfAllConsignments(String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getCountOfAllConsignments:", requestId);
+
+        Integer allCount = readerRepository.findAllCount(requestId);
+
+
+        LOGGER.info("END [SERVICE-LAYER] [RequestId={}] getCountOfAllConsignments: timeTaken={}",
+                requestId, CommonUtils.getExecutionTime(startTime));
+
+        return allCount;
+    }
+
+    @Override
     public Boolean deleteById(Long id, String requestId) {
 
         long startTime = System.currentTimeMillis();

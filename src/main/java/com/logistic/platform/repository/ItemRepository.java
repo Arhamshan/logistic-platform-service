@@ -44,11 +44,15 @@ public interface ItemRepository {
         return false;
     }
 
-    public default List<Item> findAllByStatus(String status, String requestId){
+    public default List<Item> findAllByStatus(String status, Boolean isSkipDriverAssignment, int pageNumber, int pageSize, String sortBy, String sortDir, String requestId) {
         return null;
     }
 
-    public default List<Item> findAllByDriverId(Long driverId, String requestId){
+    public default Integer findCountOfItemsByStatus(String status, Boolean isSkipDriverAssignment,  String requestId) {
+        return null;
+    }
+
+    public default List<Item> findAllByDriverId(Long driverId, String status, String requestId){
         return null;
     }
 }

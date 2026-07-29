@@ -66,18 +66,21 @@ public class LocationReaderRepository implements LocationRepository {
     }
 
     @Override
-    public List<Location> findAllLocations(String requestId) {
+    public List<Location> findAllLocations(int pageNumber, int pageSize, String sortBy, String sortDir, Boolean isGetAllLocations, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllLocations: ", requestId);
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllLocations: pageNumber={}|pageSize={}|sortBy={}|sortDir={}|isGetAllLocations={}",
+                requestId, pageNumber, pageSize, sortBy, sortDir, isGetAllLocations);
 
         List<Location> locations = null;
 
         try {
 
+            int offSet = pageNumber * pageSize;
+
             locations = this.jdbcTemplate.query(
-                    LocationQueryUtil.findAllLocationsQuery(),
+                    LocationQueryUtil.findAllLocationsQuery(sortBy, sortDir, pageSize, offSet, Boolean.FALSE, isGetAllLocations),
                     new RowMapper<Location>() {
                         @Override
                         public Location mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -106,6 +109,33 @@ public class LocationReaderRepository implements LocationRepository {
         }
 
         return locations;
+    }
+
+    public Integer findAllLocationsCount(String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllLocationsCount:", requestId);
+
+        Integer total = 0;
+
+        try {
+
+            String sql = LocationQueryUtil.findAllLocationsQuery(null, null, 0, 0, Boolean.TRUE, Boolean.FALSE);
+
+            total = jdbcTemplate.queryForObject(sql, Integer.class);
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findAllLocationsCount: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to fetch total count ", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findAllLocationsCount: count={}|timeTaken={}",
+                    requestId, total, CommonUtils.getExecutionTime(startTime));
+        }
+
+        return total;
     }
 
     @Override

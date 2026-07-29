@@ -308,12 +308,14 @@ public class ConsignmentController {
 
             List<Consignment> consignments = service.getAllConsignments(pageNumber, pageSize, sortBy, sortDir, requestId);
 
+            Integer countOfAllConsignments = service.getCountOfAllConsignments(requestId);
+
             if (consignments != null && !consignments.isEmpty()) {
 
                 List<GetAllConsignmentsDto> consignmentDtos = consignments.stream()
                         .map(GetAllConsignmentsDto::new).collect(Collectors.toList());
 
-                GetAllConsignmentsResponseDto responseDto = new GetAllConsignmentsResponseDto(consignments.size(), consignmentDtos);
+                GetAllConsignmentsResponseDto responseDto = new GetAllConsignmentsResponseDto(countOfAllConsignments, consignmentDtos);
 
                 response.setResponseCode(HttpStatus.OK.value());
                 response.setResponseMessage("Consignments retrieved successfully");
