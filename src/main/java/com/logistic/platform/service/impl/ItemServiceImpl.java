@@ -464,12 +464,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> getItemsByDriverId(Long driverId, String requestId) {
+    public List<Item> getItemsByDriverId(Long driverId, String status, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemsByDriverId: driverId={}",
-                requestId, driverId);
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] getItemsByDriverId: driverId={}|status={}",
+                requestId, driverId, status);
 
         List<Item> result = null;
 
@@ -478,11 +478,20 @@ public class ItemServiceImpl implements ItemService {
                 throw new IllegalArgumentException("Invalid driverId: " + driverId);
             }
 
-            result = itemReaderRepository.findAllByDriverId(driverId, requestId);
+            // Validate status only if provided
+            if (status != null && !status.isBlank()) {
+                try {
+                    ItemStatus.valueOf(status.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Invalid item status: " + status);
+                }
+            }
+
+            result = itemReaderRepository.findAllByDriverId(driverId, status, requestId);
 
             if (result == null || result.isEmpty()) {
-                LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getItemsByDriverId: No items found for driverId={}",
-                        requestId, driverId);
+                LOGGER.warn("WARN [SERVICE-LAYER] [RequestId={}] getItemsByDriverId: No items found for driverId={}|status={}",
+                        requestId, driverId, status);
             }
 
         } catch (Exception e) {

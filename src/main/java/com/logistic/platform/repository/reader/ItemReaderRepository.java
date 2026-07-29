@@ -374,19 +374,29 @@ public class ItemReaderRepository implements ItemRepository {
         return total;
     }
 
-    public List<Item> findAllByDriverId(Long driverId, String requestId) {
+    public List<Item> findAllByDriverId(Long driverId, String status, String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllByDriverId: driverId={}",
-                requestId, driverId);
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findAllByDriverId: driverId={}|status={}",
+                requestId, driverId, status);
 
         List<Item> result = null;
 
         try {
-            String sql = ItemQueryUtil.findAllByDriverIdQuery();
+            // Pick query and params based on whether status is provided
+            String sql;
+            Object[] params;
 
-            result = jdbcTemplate.query(sql, new Object[]{driverId},
+            if (status != null && !status.isBlank()) {
+                sql    = ItemQueryUtil.findAllByDriverIdAndStatusQuery();
+                params = new Object[]{driverId, status.toUpperCase()};
+            } else {
+                sql    = ItemQueryUtil.findAllByDriverIdQuery();
+                params = new Object[]{driverId};
+            }
+
+            result = jdbcTemplate.query(sql, params,
                     (rs, rowNum) -> {
 
                         // ── Destination contact ──
