@@ -278,23 +278,6 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
             // item Tracking part
             List<TrackingItemVo> trackingItems = itemService.getTrackingItems(consignmentId, requestId);
-
-            if (trackingItems != null && !trackingItems.isEmpty()) {
-                List<com.logistic.common.enums.ItemStatus> itemStatuses = trackingItems.stream()
-                        .map(it -> {
-                            try { return com.logistic.common.enums.ItemStatus.valueOf(it.getStatus()); }
-                            catch (Exception e) { return null; }
-                        })
-                        .filter(java.util.Objects::nonNull)
-                        .collect(Collectors.toList());
-
-                if (!itemStatuses.isEmpty()) {
-                    com.logistic.common.enums.ConsignmentStatus liveDerived =
-                            ConsignmentUtil.deriveConsignmentStatusFromItems(itemStatuses);
-                    result.setStatus(liveDerived.name());
-                }
-            }
-
             // Resolve current_location for each item
             for (TrackingItemVo itemVo : trackingItems) {
                 Location location = locationService.getLocationByCode(itemVo.getCurrentLocationCode(), requestId);
