@@ -15,6 +15,7 @@ import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.service.ContactService;
 import com.logistic.platform.service.ItemService;
 import com.logistic.platform.service.LocationService;
+import com.logistic.platform.util.ConsignmentUtil;
 import com.logistic.platform.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -277,6 +278,22 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
             // item Tracking part
             List<TrackingItemVo> trackingItems = itemService.getTrackingItems(consignmentId, requestId);
+
+            if (trackingItems != null && !trackingItems.isEmpty()) {
+                List<com.logistic.common.enums.ItemStatus> itemStatuses = trackingItems.stream()
+                        .map(it -> {
+                            try { return com.logistic.common.enums.ItemStatus.valueOf(it.getStatus()); }
+                            catch (Exception e) { return null; }
+                        })
+                        .filter(java.util.Objects::nonNull)
+                        .collect(Collectors.toList());
+
+                if (!itemStatuses.isEmpty()) {
+                    com.logistic.common.enums.ConsignmentStatus liveDerived =
+                            ConsignmentUtil.deriveConsignmentStatusFromItems(itemStatuses);
+                    result.setStatus(liveDerived.name());
+                }
+            }
 
             // Resolve current_location for each item
             for (TrackingItemVo itemVo : trackingItems) {
