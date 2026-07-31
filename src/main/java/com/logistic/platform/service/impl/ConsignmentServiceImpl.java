@@ -15,6 +15,7 @@ import com.logistic.platform.service.ConsignmentService;
 import com.logistic.platform.service.ContactService;
 import com.logistic.platform.service.ItemService;
 import com.logistic.platform.service.LocationService;
+import com.logistic.platform.util.ConsignmentUtil;
 import com.logistic.platform.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -277,7 +278,6 @@ public class ConsignmentServiceImpl implements ConsignmentService {
 
             // item Tracking part
             List<TrackingItemVo> trackingItems = itemService.getTrackingItems(consignmentId, requestId);
-
             // Resolve current_location for each item
             for (TrackingItemVo itemVo : trackingItems) {
                 Location location = locationService.getLocationByCode(itemVo.getCurrentLocationCode(), requestId);
