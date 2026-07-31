@@ -321,9 +321,12 @@ public class ItemServiceImpl implements ItemService {
                     // Fetch every item that belongs to this consignment
                     List<Item> allItems = getByConsId(consignment.getId(), requestId);
 
-                    // Collect their current statuses (the updated item is already persisted)
+                    // Collect their current statuses (override triggering item's status in case reader DB is stale)
+                    Item finalItem = item;
                     List<ItemStatus> allStatuses = allItems.stream()
-                            .map(Item::getStatus)
+                            .map(it -> java.util.Objects.equals(it.getId(), finalItem.getId())
+                                    ? finalItem.getStatus()
+                                    : it.getStatus())
                             .collect(Collectors.toList());
 
                     // Derive the correct consignment status (full or partial)
