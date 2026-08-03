@@ -2,6 +2,7 @@ package com.logistic.platform.dto.item;
 
 import com.logistic.common.entity.Contact;
 import com.logistic.common.entity.Item;
+import com.logistic.common.util.CommonUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,6 +27,7 @@ public class GetItemDto {
     private String destinaionSuburb;
     private String destinaionPostCode;
     private String destinaionCountry;
+    private Boolean isPodExist = Boolean.FALSE;
 
     public GetItemDto(Item item) {
         this.id                  = item.getId();
@@ -46,6 +48,10 @@ public class GetItemDto {
             this.destinaionSuburb       = dest.getSuburb();
             this.destinaionPostCode     = dest.getPostcode();
             this.destinaionCountry      = dest.getCountry();
+        }
+
+        if (item.getPod() != null && !CommonUtils.isBlankString(item.getPod().getPodPath())) {
+            this.isPodExist = Boolean.TRUE;
         }
     }
 }
