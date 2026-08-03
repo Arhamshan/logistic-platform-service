@@ -260,11 +260,14 @@ public class ItemQueryUtil {
         query.append("     dc.state         AS dest_state, ");
         query.append("     dc.suburb        AS dest_suburb, ");
         query.append("     dc.postcode      AS dest_postcode, ");
-        query.append("     dc.country       AS dest_country ");
+        query.append("     dc.country       AS dest_country, ");
+        query.append("     p.id             AS pod_id, ");
+        query.append("     p.pod_path ");
         query.append(" FROM \"Items\" i ");
         query.append(" JOIN \"DeliveryAssignments\" da ON da.cons_item_id = i.id ");
         query.append(" JOIN \"Consignments\" c ON i.cons_id = c.id ");
         query.append(" LEFT JOIN \"Contacts\" dc ON c.destination_contact_id = dc.id ");
+        query.append(" LEFT JOIN \"Pods\" p ON i.id = p.cons_item_id ");
         query.append(" WHERE da.driver_user_id = ? ");
         query.append(" AND i.status = ? ");
         query.append(" ORDER BY i.id ASC ");

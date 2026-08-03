@@ -3,6 +3,7 @@ package com.logistic.platform.repository.reader;
 import com.logistic.common.entity.Consignment;
 import com.logistic.common.entity.Contact;
 import com.logistic.common.entity.Item;
+import com.logistic.common.entity.Pod;
 import com.logistic.common.enums.ItemStatus;
 import com.logistic.common.util.CommonUtils;
 import com.logistic.platform.repository.ItemRepository;
@@ -422,6 +423,15 @@ public class ItemReaderRepository implements ItemRepository {
                         item.setWeight(rs.getFloat("weight"));
                         item.setCurrentLocationCode(rs.getString("current_location_code"));
                         item.setConsignment(consignment);
+
+                        if (status != null && !status.isBlank()) {
+                            // -- POD
+                            Pod pod = new Pod();
+                            pod.setId(rs.getLong("pod_id"));
+                            pod.setPodPath(rs.getString("pod_path"));
+
+                            item.setPod(pod);
+                        }
 
                         return item;
                     });
