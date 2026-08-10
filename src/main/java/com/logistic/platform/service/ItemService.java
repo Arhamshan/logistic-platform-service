@@ -5,6 +5,7 @@ import com.logistic.common.entity.Item;
 import com.logistic.platform.vo.TrackingItemVo;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ItemService {
 
@@ -36,4 +37,5 @@ public interface ItemService {
 
     List<Item> getItemsByDriverId(Long driverId, String status, String requestId);
 
+    Optional<Item> findByItemIdOrBarcode(String value, String requestId);
 }

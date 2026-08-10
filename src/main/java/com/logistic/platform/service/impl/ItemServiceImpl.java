@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -509,6 +510,27 @@ public class ItemServiceImpl implements ItemService {
                     CommonUtils.getExecutionTime(startTime));
         }
 
+        return result;
+    }
+
+    @Override
+    public Optional<Item> findByItemIdOrBarcode(String value, String requestId) {
+        long startTime = System.currentTimeMillis();
+        LOGGER.info("START [SERVICE-LAYER] [RequestId={}] findByItemIdOrBarcode: value={}", requestId, value);
+        Optional<Item> result = Optional.empty();
+        try {
+            result = itemReaderRepository.findByItemId(value, requestId);
+            if (result.isEmpty()) {
+                result = itemReaderRepository.findByBarcodeNumber(value, requestId);
+            }
+        } catch (Exception e) {
+            LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] findByItemIdOrBarcode: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw e;
+        } finally {
+            LOGGER.info("END [SERVICE-LAYER] [RequestId={}] findByItemIdOrBarcode: found={}|timeTaken={}",
+                    requestId, result.isPresent(), CommonUtils.getExecutionTime(startTime));
+        }
         return result;
     }
 }

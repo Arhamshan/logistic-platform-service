@@ -112,6 +112,24 @@ public class ItemQueryUtil {
         return query.toString();
     }
 
+    public static String findByItemIdQuery() {
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT ");
+        query.append("     i.id, ");
+        query.append("     i.item_id, ");
+        query.append("     i.status, ");
+        query.append("     i.barcode_number, ");
+        query.append("     i.current_location_code, ");
+        query.append("     c.id  AS consignment_pk, ");
+        query.append("     c.consignment_id ");
+        query.append(" FROM \"Items\" i ");
+        query.append(" INNER JOIN \"Consignments\" c ");
+        query.append("     ON i.cons_id = c.id ");
+        query.append(" WHERE i.item_id = ? ");
+
+        return query.toString();
+    }
+
     public static String findByConsIdQuery() {
         StringBuilder query = new StringBuilder();
         query.append(" SELECT ");

@@ -201,6 +201,51 @@ public class ItemReaderRepository implements ItemRepository {
         return result.stream().findFirst();
     }
 
+    @Override
+    public Optional<Item> findByItemId(String itemId, String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REPOSITORY-LAYER] [RequestId={}] findByItemId: itemId={}",
+                requestId, itemId);
+
+        List<Item> result = null;
+
+        try {
+            String sql = ItemQueryUtil.findByItemIdQuery();
+
+            result = jdbcTemplate.query(sql, new Object[]{itemId},
+                    (rs, rowNum) -> {
+                        Consignment consignment = new Consignment();
+                        consignment.setId(rs.getLong("consignment_pk"));
+                        consignment.setConsignmentId(rs.getString("consignment_id"));
+
+                        Item item = new Item();
+                        item.setId(rs.getLong("id"));
+                        item.setItemId(rs.getString("item_id"));
+                        item.setBarcodeNumber(rs.getString("barcode_number"));
+                        item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+                        item.setCurrentLocationCode(rs.getString("current_location_code"));
+                        item.setConsignment(consignment);
+                        return item;
+                    });
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REPOSITORY-LAYER] [RequestId={}] findByItemId: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+            throw new RuntimeException("Failed to fetch item by itemId", e);
+
+        } finally {
+            LOGGER.info("END [REPOSITORY-LAYER] [RequestId={}] findByItemId: found={}|timeTaken={}",
+                    requestId,
+                    result != null && !result.isEmpty(),
+                    CommonUtils.getExecutionTime(startTime));
+        }
+
+        return result.stream().findFirst();
+    }
+
+    @Override
     public Optional<Item> findById(Long id, String requestId) {
 
         long startTime = System.currentTimeMillis();

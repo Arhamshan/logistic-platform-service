@@ -36,6 +36,10 @@ public interface ItemRepository {
         return Optional.empty();
     }
 
+    public default Optional<Item> findByItemId(String itemId, String requestId) {
+        return Optional.empty();
+    }
+
     public default List<Item> findByConsId(Long consId, String requestId){
         return null;
     }
