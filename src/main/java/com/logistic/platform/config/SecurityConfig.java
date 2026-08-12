@@ -75,6 +75,8 @@ public class SecurityConfig {
                         .requestMatchers("/assets/**").permitAll()
                         .requestMatchers("/v1/pod-images/**").permitAll()
                         .requestMatchers("/public/v1/consignment/track/**").permitAll()
+                        .requestMatchers("/v1/consignment/track/**").permitAll()
+                        .requestMatchers("/v1/consignment/label/**").permitAll()
                         .requestMatchers("/login", "/logout").permitAll()
                         .requestMatchers("/*.css", "/*.js", "/*.ico").permitAll()
                         .requestMatchers("/v1/**").hasAnyRole(
