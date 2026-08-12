@@ -9,6 +9,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class LogisticPlatformServiceApplication {
 
 	public static void main(String[] args) {
+		// Force AWT Headless Mode before Spring boots
+		System.setProperty("java.awt.headless", "true");
+
 		SpringApplication.run(LogisticPlatformServiceApplication.class, args);
 	}
 
