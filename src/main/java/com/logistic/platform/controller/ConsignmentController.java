@@ -5,6 +5,7 @@ import com.logistic.common.entity.Consignment;
 import com.logistic.common.entity.Item;
 import com.logistic.common.entity.Pod;
 import com.logistic.common.util.CommonUtils;
+import com.logistic.platform.config.ShippingLabelService;
 import com.logistic.platform.dto.consignment.*;
 import com.logistic.platform.dto.item.ItemProcessDto;
 import com.logistic.platform.dto.pod.PodRequestDto;
@@ -15,9 +16,13 @@ import com.logistic.platform.vo.ConsignmentVo;
 import com.logistic.platform.vo.ItemProcessResultVo;
 import com.logistic.platform.vo.SummaryVo;
 import com.logistic.platform.vo.TrackingConsignmentVo;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,7 +32,10 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -38,10 +46,12 @@ public class ConsignmentController {
 
     private final ConsignmentService service;
     private final PodService podService;
+    private final ShippingLabelService shippingLabelService;
 
-    public ConsignmentController(ConsignmentService service, PodService podService) {
+    public ConsignmentController(ConsignmentService service, PodService podService, ShippingLabelService shippingLabelService) {
         this.service = service;
         this.podService = podService;
+        this.shippingLabelService = shippingLabelService;
     }
 
     @PostMapping
@@ -522,5 +532,68 @@ public class ConsignmentController {
         }
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/label/{consignmentId}")
+    public ResponseEntity<byte[]> getLabel(
+            @PathVariable("consignmentId") String consignmentId,
+            @RequestParam("requestId") String requestId) {
+
+        long startTime = System.currentTimeMillis();
+
+        LOGGER.info("START [REST-LAYER] [RequestId={}] getLabel: consignmentId={}", requestId, consignmentId);
+
+        ResponseDto<List<TrackingConsignmentResponseDto>> response = new ResponseDto<>();
+        response.setRequestId(requestId);
+        byte[] pdfContent = null;
+
+        try {
+            List<Map<String, Object>> dataList = new ArrayList<>();
+
+            TrackingConsignmentVo consignment = service.getByConsignmentId(consignmentId, requestId);
+
+            if (consignment != null && !consignment.getItems().isEmpty()) {
+                consignment.getItems().forEach(i -> {
+                    Map<String, Object> itemData = new HashMap<>();
+
+                    // Consignment info
+                    itemData.put("SenderName", consignment.getSenderContactName());
+                    itemData.put("SenderAddress", consignment.getSenderContactAddressLine1() + ", " + consignment.getSenderContactAddressLine2() + "\n" + consignment.getSenderContactSuburb() + "\n" + consignment.getSenderContactState() + "\n" + consignment.getSenderContactCountry());
+                    itemData.put("SenderMobile", consignment.getSenderContactPhone());
+                    itemData.put("ReceiverName", consignment.getDestinationContactName());
+                    itemData.put("ReceiverAddress", consignment.getDestinationContactAddressLine1() + ", " + consignment.getDestinationContactAddressLine2() + "\n" + consignment.getDestinationContactSuburb() + "\n" + consignment.getDestinationContactState() + "\n" + consignment.getDestinationContactCountry());
+                    itemData.put("ReceiverMobile", consignment.getDestinationContactPhone());
+                    itemData.put("ConsignmentNo", consignment.getConsignmentId());
+
+                    // Dynamic item details per page
+                    itemData.put("ItemNo", i.getItemId());                       // e.g., IT-1, IT-2
+                    itemData.put("TotalItems", consignment.getItems().size());   // e.g., 2
+                    itemData.put("BarcodeNo", i.getBarcode());                   // Unique barcode per item
+
+                    dataList.add(itemData);
+                });
+
+                pdfContent = shippingLabelService.generateShippingLabelPdf(dataList);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR [REST-LAYER] [RequestId={}] getLabel: Ex={}|Trace={}",
+                    requestId, e.getMessage(), e.getStackTrace());
+
+        } finally {
+            response.setTimestamp(LocalDateTime.now());
+            LOGGER.info("END [REST-LAYER] [RequestId={}] getLabel: response={}|timeTaken={}",
+                    requestId, response, CommonUtils.getExecutionTime(startTime));
+        }
+
+        if (pdfContent != null) {
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=shipping_label.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfContent);
+        }
+
+        return null;
+
     }
 }
