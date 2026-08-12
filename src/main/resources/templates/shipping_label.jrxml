@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="ShippingLabelA5"
+              pageWidth="420"
+              pageHeight="595"
+              columnWidth="380"
+              leftMargin="20"
+              rightMargin="20"
+              topMargin="20"
+              bottomMargin="20"
+              uuid="d1234567-89ab-cdef-0123-456789abcdef">
+
+    <!-- Field Definitions -->
+    <field name="SenderName" class="java.lang.String"/>
+    <field name="SenderAddress" class="java.lang.String"/>
+    <field name="SenderMobile" class="java.lang.String"/>
+    <field name="ReceiverName" class="java.lang.String"/>
+    <field name="ReceiverAddress" class="java.lang.String"/>
+    <field name="ReceiverMobile" class="java.lang.String"/>
+    <field name="ConsignmentNo" class="java.lang.String"/>
+    <field name="ItemNo" class="java.lang.String"/>
+    <field name="TotalItems" class="java.lang.String"/>
+    <field name="BarcodeNo" class="java.lang.String"/>
+
+    <!-- Full Page Outer Border -->
+    <background>
+        <band height="555" splitType="Stretch">
+            <rectangle>
+                <reportElement x="0" y="0" width="380" height="555" uuid="a1b2c3d4-e5f6-7890-1234-567890abcdef"/>
+                <graphicElement>
+                    <pen lineWidth="1.5" lineColor="#000000"/>
+                </graphicElement>
+            </rectangle>
+        </band>
+    </background>
+
+    <detail>
+        <band height="555" splitType="Stretch">
+            <!-- Top Header Section: Label Title & Courier Name -->
+            <staticText>
+                <reportElement x="10" y="10" width="220" height="22" uuid="11111111-1111-1111-1111-111111111111"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="14" isBold="true"/>
+                </textElement>
+                <text><![CDATA[SHIPPING LABEL]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="230" y="10" width="140" height="22" uuid="22222222-2222-2222-2222-222222222222"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[ARQON Logistics]]></text>
+            </staticText>
+
+            <line>
+                <reportElement x="10" y="38" width="360" height="1" uuid="33333333-3333-3333-3333-333333333333"/>
+                <graphicElement>
+                    <pen lineWidth="1.0" lineColor="#000000"/>
+                </graphicElement>
+            </line>
+
+            <!-- Consignment & Item Details -->
+            <frame>
+                <reportElement x="10" y="45" width="360" height="40" uuid="44444444-4444-4444-4444-444444444444"/>
+                <staticText>
+                    <reportElement x="0" y="0" width="100" height="15" uuid="44444444-4444-4444-4444-444444444445"/>
+                    <textElement>
+                        <font fontName="DejaVu Sans" size="9" isBold="true"/>
+                    </textElement>
+                    <text><![CDATA[Consignment No:]]></text>
+                </staticText>
+                <textField isBlankWhenNull="true">
+                    <reportElement x="100" y="0" width="260" height="15" uuid="44444444-4444-4444-4444-444444444446"/>
+                    <textElement>
+                        <font fontName="DejaVu Sans" size="9" isBold="true"/>
+                    </textElement>
+                    <textFieldExpression><![CDATA[$F{ConsignmentNo}]]></textFieldExpression>
+                </textField>
+
+                <staticText>
+                    <reportElement x="0" y="20" width="100" height="15" uuid="44444444-4444-4444-4444-444444444447"/>
+                    <textElement>
+                        <font fontName="DejaVu Sans" size="9" isBold="true"/>
+                    </textElement>
+                    <text><![CDATA[Item No:]]></text>
+                </staticText>
+                <textField isBlankWhenNull="true">
+                    <reportElement x="100" y="20" width="260" height="15" uuid="44444444-4444-4444-4444-444444444448"/>
+                    <textElement>
+                        <font fontName="DejaVu Sans" size="9" isBold="true"/>
+                    </textElement>
+                    <textFieldExpression><![CDATA[$F{ItemNo}]]></textFieldExpression>
+
+                    <!--                    <textFieldExpression><![CDATA[$F{ItemNo} + ($F{TotalItems} != null ? " of " + $F{TotalItems} : "")]]></textFieldExpression>-->
+                </textField>
+            </frame>
+
+            <line>
+                <reportElement x="10" y="93" width="360" height="1" uuid="55555555-5555-5555-5555-555555555555"/>
+                <graphicElement>
+                    <pen lineWidth="1.0" lineColor="#000000"/>
+                </graphicElement>
+            </line>
+
+            <!-- Sender / Receiver Section Grid -->
+            <line>
+                <reportElement x="190" y="94" width="1" height="230" uuid="66666666-6666-6666-6666-666666666666"/>
+                <graphicElement>
+                    <pen lineWidth="1.0" lineColor="#000000"/>
+                </graphicElement>
+            </line>
+
+            <!-- Left Box: SENDER DETAILS -->
+            <frame>
+                <reportElement x="15" y="100" width="165" height="215" uuid="77777777-7777-7777-7777-777777777777"/>
+
+                <staticText>
+                    <reportElement x="0" y="0" width="165" height="16" uuid="77777777-7777-7777-7777-777777777778"/>
+                    <textElement>
+                        <font fontName="DejaVu Sans" size="10" isBold="true" isUnderline="true"/>
+                    </textElement>
+                    <text><![CDATA[FROM (SENDER):]]></text>
+                </staticText>
+
+                <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                    <reportElement x="0" y="20" width="165" height="18" uuid="77777777-7777-7777-7777-777777777779"/>
+                    <textElement>
+                        <font fontName="DejaVu Sans" size="10" isBold="true"/>
+                    </textElement>
+                    <textFieldExpression><![CDATA[$F{SenderName}]]></textFieldExpression>
+                </textField>
+
+                <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                    <reportElement x="0" y="42" width="165" height="90" uuid="77777777-7777-7777-7777-77777777780"/>
+                    <textElement>
+                        <font fontName="DejaVu Sans" size="9"/>
+                    </textElement>
+                    <textFieldExpression><![CDATA[$F{SenderAddress}]]></textFieldExpression>
+                </textField>
+
+                <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                    <reportElement positionType="Float" x="0" y="88" width="165" height="16" uuid="77777777-7777-7777-7777-777777777781"/>
+                    <textElement>
+                        <font fontName="DejaVu Sans" size="9"/>
+                    </textElement>
+                    <textFieldExpression><![CDATA["Tel: " + ($F{SenderMobile} != null ? $F{SenderMobile} : "")]]></textFieldExpression>
+                </textField>
+            </frame>
+
+            <!-- Right Box: RECEIVER DETAILS -->
+            <frame>
+                <reportElement x="200" y="100" width="165" height="215" uuid="88888888-8888-8888-8888-888888888888"/>
+
+                <staticText>
+                    <reportElement x="0" y="0" width="165" height="16" uuid="88888888-8888-8888-8888-888888888889"/>
+                    <textElement>
+                        <font fontName="DejaVu Sans" size="10" isBold="true" isUnderline="true"/>
+                    </textElement>
+                    <text><![CDATA[TO (RECEIVER):]]></text>
+                </staticText>
+
+                <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                    <reportElement x="0" y="20" width="165" height="18" uuid="88888888-8888-8888-8888-888888888890"/>
+                    <textElement>
+                        <font fontName="DejaVu Sans" size="10" isBold="true"/>
+                    </textElement>
+                    <textFieldExpression><![CDATA[$F{ReceiverName}]]></textFieldExpression>
+                </textField>
+
+                <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                    <reportElement x="0" y="42" width="165" height="90" uuid="88888888-8888-8888-8888-888888888891"/>
+                    <textElement>
+                        <font fontName="DejaVu Sans" size="9"/>
+                    </textElement>
+                    <textFieldExpression><![CDATA[$F{ReceiverAddress}]]></textFieldExpression>
+                </textField>
+
+                <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                    <reportElement positionType="Float" x="0" y="88" width="165" height="16" uuid="88888888-8888-8888-8888-888888888892"/>
+                    <textElement>
+                        <font fontName="DejaVu Sans" size="9"/>
+                    </textElement>
+                    <textFieldExpression><![CDATA["Tel: " + ($F{ReceiverMobile} != null ? $F{ReceiverMobile} : "")]]></textFieldExpression>
+                </textField>
+            </frame>
+
+            <line>
+                <reportElement x="10" y="325" width="360" height="1" uuid="99999999-9999-9999-9999-999999999999"/>
+                <graphicElement>
+                    <pen lineWidth="1.0" lineColor="#000000"/>
+                </graphicElement>
+            </line>
+
+            <!-- Center Barcode Section (Code128) -->
+            <componentElement>
+                <reportElement x="40" y="350" width="300" height="100" uuid="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"/>
+                <jr:Code128 xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components"
+                            xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd"
+                            moduleWidth="2"
+                            textPosition="bottom">
+                    <jr:codeExpression><![CDATA[$F{BarcodeNo}]]></jr:codeExpression>
+                </jr:Code128>
+            </componentElement>
+
+        </band>
+    </detail>
+</jasperReport>
