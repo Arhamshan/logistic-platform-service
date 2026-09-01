@@ -22,11 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -226,6 +222,11 @@ public class ConsignmentServiceImpl implements ConsignmentService {
     }
 
     @Override
+    public TrackingConsignmentVo getByTrackingCode(String trackingCode, String requestId) {
+        return getByConsignmentId(trackingCode, requestId);
+    }
+
+    @Override
     public TrackingConsignmentVo getByConsignmentId(String consignmentId, String requestId) {
 
         long startTime = System.currentTimeMillis();
@@ -238,61 +239,41 @@ public class ConsignmentServiceImpl implements ConsignmentService {
         try {
             Optional<Consignment> consignmentOpt = readerRepository.findTrackingByConsignmentId(consignmentId, requestId);
 
-            if (consignmentOpt.isEmpty()) {
-                return null;
-            }
+            Consignment consignment;
 
-            Consignment consignment = consignmentOpt.get();
+            if (consignmentOpt.isPresent()) {
+                // Matched directly as a consignment ID — full result, all items
+                consignment = consignmentOpt.get();
+                result = buildTrackingVo(consignment, requestId);
 
-            result = new TrackingConsignmentVo();
-            result.setConsignmentId(consignment.getConsignmentId());
-            result.setStatus(consignment.getStatus().name());
+            } else {
+                Optional<Item> itemOpt = itemService.findByItemIdOrBarcode(consignmentId, requestId);
 
-            // ── Sender contact ──
-            if (consignment.getSenderContact() != null) {
-                Contact sender = consignment.getSenderContact();
-                result.setSenderContactName(sender.getName());
-                result.setSenderContactEmail(sender.getEmail());
-                result.setSenderContactPhone(sender.getPhone());
-                result.setSenderContactAddressLine1(sender.getAddressLine1());
-                result.setSenderContactAddressLine2(sender.getAddressLine2());
-                result.setSenderContactState(sender.getState());
-                result.setSenderContactSuburb(sender.getSuburb());
-                result.setSenderContactPostcode(sender.getPostcode());
-                result.setSenderContactCountry(sender.getCountry());
-            }
-
-            // ── Destination contact ──
-            if (consignment.getDestinationContact() != null) {
-                Contact destination = consignment.getDestinationContact();
-                result.setDestinationContactName(destination.getName());
-                result.setDestinationContactEmail(destination.getEmail());
-                result.setDestinationContactPhone(destination.getPhone());
-                result.setDestinationContactAddressLine1(destination.getAddressLine1());
-                result.setDestinationContactAddressLine2(destination.getAddressLine2());
-                result.setDestinationContactState(destination.getState());
-                result.setDestinationContactSuburb(destination.getSuburb());
-                result.setDestinationContactPostcode(destination.getPostcode());
-                result.setDestinationContactCountry(destination.getCountry());
-            }
-
-            // item Tracking part
-            List<TrackingItemVo> trackingItems = itemService.getTrackingItems(consignmentId, requestId);
-            // Resolve current_location for each item
-            for (TrackingItemVo itemVo : trackingItems) {
-                Location location = locationService.getLocationByCode(itemVo.getCurrentLocationCode(), requestId);
-                if (location != null) {
-                    itemVo.setCurrentLocation(
-                            new TrackingLocationVo(
-                                    location.getName(),
-                                    location.getType().name(),
-                                    location.getLocationCode()
-                            )
-                    );
+                if (itemOpt.isEmpty() || itemOpt.get().getConsignment() == null) {
+                    return null;
                 }
-            }
 
-            result.setItems(trackingItems);
+                Item matchedItem = itemOpt.get();
+
+                // Fetch the full consignment from DB using the consignmentId
+                String consignmentId2 = matchedItem.getConsignment().getConsignmentId();
+
+                Optional<Consignment> fullConsignmentOpt = readerRepository
+                        .findTrackingByConsignmentId(consignmentId2, requestId);
+
+                if (fullConsignmentOpt.isEmpty()) {
+                    return null;
+                }
+
+                consignment = fullConsignmentOpt.get();
+                result = buildTrackingVo(consignment, requestId);
+
+                // Narrow items down to just the matched item
+                List<TrackingItemVo> filtered = result.getItems().stream()
+                        .filter(i -> Objects.equals(i.getId(), matchedItem.getId()))
+                        .collect(Collectors.toList());
+                result.setItems(filtered);
+            }
 
         } catch (Exception e) {
             LOGGER.error("ERROR [SERVICE-LAYER] [RequestId={}] getTrackingByConsignmentId: Ex={}|Trace={}",
@@ -305,6 +286,60 @@ public class ConsignmentServiceImpl implements ConsignmentService {
         }
 
         return result;
+    }
+
+    private TrackingConsignmentVo buildTrackingVo(Consignment consignment, String requestId) {
+
+        TrackingConsignmentVo vo = new TrackingConsignmentVo();
+        vo.setConsignmentId(consignment.getConsignmentId());
+        vo.setStatus(consignment.getStatus() != null ?
+                consignment.getStatus().name() : null);
+
+        // ── Sender contact ──
+        if (consignment.getSenderContact() != null) {
+            Contact sender = consignment.getSenderContact();
+            vo.setSenderContactName(sender.getName());
+            vo.setSenderContactEmail(sender.getEmail());
+            vo.setSenderContactPhone(sender.getPhone());
+            vo.setSenderContactAddressLine1(sender.getAddressLine1());
+            vo.setSenderContactAddressLine2(sender.getAddressLine2());
+            vo.setSenderContactState(sender.getState());
+            vo.setSenderContactSuburb(sender.getSuburb());
+            vo.setSenderContactPostcode(sender.getPostcode());
+            vo.setSenderContactCountry(sender.getCountry());
+        }
+
+        // ── Destination contact ──
+        if (consignment.getDestinationContact() != null) {
+            Contact destination = consignment.getDestinationContact();
+            vo.setDestinationContactName(destination.getName());
+            vo.setDestinationContactEmail(destination.getEmail());
+            vo.setDestinationContactPhone(destination.getPhone());
+            vo.setDestinationContactAddressLine1(destination.getAddressLine1());
+            vo.setDestinationContactAddressLine2(destination.getAddressLine2());
+            vo.setDestinationContactState(destination.getState());
+            vo.setDestinationContactSuburb(destination.getSuburb());
+            vo.setDestinationContactPostcode(destination.getPostcode());
+            vo.setDestinationContactCountry(destination.getCountry());
+        }
+
+        // item Tracking part
+        List<TrackingItemVo> trackingItems = itemService.getTrackingItems(consignment.getConsignmentId(), requestId);
+        for (TrackingItemVo itemVo : trackingItems) {
+            Location location = locationService.getLocationByCode(itemVo.getCurrentLocationCode(), requestId);
+            if (location != null) {
+                itemVo.setCurrentLocation(
+                        new TrackingLocationVo(
+                                location.getName(),
+                                location.getType().name(),
+                                location.getLocationCode()
+                        )
+                );
+            }
+        }
+        vo.setItems(trackingItems);
+
+        return vo;
     }
 
     @Override

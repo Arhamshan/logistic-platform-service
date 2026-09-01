@@ -134,15 +134,15 @@ public class ConsignmentController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/track/{consignmentId}")
+    @GetMapping("/track/{trackingCode}")
     public ResponseEntity<ResponseDto<List<TrackingConsignmentResponseDto>>> trackConsignment(
-            @PathVariable("consignmentId") String consignmentId,
+            @PathVariable("trackingCode") String trackingCode,
             @RequestParam("requestId") String requestId) {
 
         long startTime = System.currentTimeMillis();
 
-        LOGGER.info("START [REST-LAYER] [RequestId={}] trackConsignment: consignmentId={}",
-                requestId, consignmentId);
+        LOGGER.info("START [REST-LAYER] [RequestId={}] trackConsignment: trackingCode={}",
+                requestId, trackingCode);
 
         ResponseDto<List<TrackingConsignmentResponseDto>> response = new ResponseDto<>();
         response.setRequestId(requestId);
@@ -151,16 +151,17 @@ public class ConsignmentController {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             LOGGER.info("DETAIL [REST-LAYER] [RequestId={}] trackConsignment: usernameFromAuthHeader={}", requestId, auth.getName());
 
-            TrackingConsignmentVo tracking = service.getByConsignmentId(consignmentId, requestId);
+            // Service now resolves by consignmentId, itemId, or barcode — whichever matches
+            TrackingConsignmentVo tracking = service.getByTrackingCode(trackingCode, requestId);
 
             if (tracking == null) {
                 response.setResponseCode(HttpStatus.BAD_REQUEST.value());
-                response.setResponseMessage("Tracking not found for the consignment " + consignmentId);
+                response.setResponseMessage("Tracking not found for " + trackingCode);
                 response.setData(null);
 
             } else {
                 response.setResponseCode(HttpStatus.OK.value());
-                response.setResponseMessage("Consignment tracking fetched successfully.");
+                response.setResponseMessage("Tracking fetched successfully.");
                 response.setData(List.of(new TrackingConsignmentResponseDto(tracking)));
             }
 
